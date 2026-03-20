@@ -17,21 +17,40 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// MongoDB Connection
+// MongoDB URI (define before session/bootstrap to ensure availability)
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/claudia';
 
-// Session configuration
+// Session configuration should be registered before modular bootstrap so
+// modular routes can rely on req.session
 app.use(session({
   secret: process.env.SESSION_SECRET || 'claudia-space-secret-key',
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
-    mongoUrl: MONGODB_URI
+    mongoUrl: MONGODB_URI,
+    touchAfter: 24 * 3600
   }),
   cookie: {
-    maxAge: 1000 * 60 * 60 * 24 // 24 hours
+    maxAge: 1000 * 60 * 60 * 24
   }
 }));
+
+// Attempt to bootstrap modular backend if present (Phase 1 of refactor)
+try {
+  const modularBootstrap = require('./backend/src/app');
+  if (typeof modularBootstrap === 'function') {
+    modularBootstrap(app);
+    console.log('🟢 Backend modular bootstrap loaded');
+  }
+} catch (err) {
+  // Silently ignore if not present yet; will be wired by agents later
+  console.log('ℹ No modular backend bootstrap detected, continuing with monolith.');
+}
+
+// MongoDB Connection
+// MONGODB_URI is defined earlier in this file to ensure it's available for session setup
+
+// Session bootstrap will be defined once with a proper MONGODB_URI variable
 
 mongoose.connect(MONGODB_URI)
   .then(async () => {

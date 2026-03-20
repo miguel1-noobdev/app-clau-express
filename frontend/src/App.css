@@ -1,0 +1,12 @@
+/* Very light styling to start the React frontend */
+:root {
+  --bg: #f8f9fa;
+  --text: #111;
+}
+html, body, #root {
+  height: 100%;
+}
+body {
+  margin: 0; padding: 0; background: var(--bg); color: var(--text);
+}
+.container { padding: 1rem; }
