@@ -1,0 +1,23 @@
+name: Frontend CI (Local path)
+
+on:
+  push:
+    branches: [ main, refactor/frontend-react-v1 ]
+
+jobs:
+  frontend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm ci
+      - name: Build
+        run: |
+          cd frontend
+          npm run build

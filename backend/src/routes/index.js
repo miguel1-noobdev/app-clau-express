@@ -68,4 +68,75 @@ if (User) {
   })
 }
 
-module.exports = router
+// Admin-only endpoints for user management (Phase 1 advanced endpoints)
+const adminOnly = (req, res, next) => {
+  if (req.session && req.session.username === 'admin') return next()
+  return res.status(403).json({ error: 'Acceso denegado' })
+}
+
+if (User) {
+  // GET /api/users
+  router.get('/users', adminOnly, async (req, res) => {
+    try {
+      const users = await User.find().select('-password').sort({ createdAt: -1 }).limit(200)
+      res.json(users)
+    } catch (err) {
+      res.status(500).json({ error: 'Error al obtener usuarios' })
+    }
+  })
+
+  // POST /api/users
+  router.post('/users', adminOnly, async (req, res) => {
+    try {
+      const { username, password, role, phone, email } = req.body
+      if (!username || !password) return res.status(400).json({ error: 'Faltan campos requeridos' })
+      const existing = await User.findOne({ username: username.toLowerCase() })
+      if (existing) return res.status(400).json({ error: 'Usuario ya existe' })
+      const user = new User({ username, password, role: role || 'user', phone, email, mustChangePassword: true, createdBy: req.session.username })
+      await user.save()
+      res.status(201).json({ success: true, user: user.toJSON() })
+    } catch (err) {
+      res.status(500).json({ error: 'Error al crear usuario' })
+    }
+  })
+
+  // GET /api/users/:id
+  router.get('/users/:id', adminOnly, async (req, res) => {
+    try {
+      const user = await User.findById(req.params.id).select('-password')
+      if (!user) return res.status(404).json({ error: 'Usuario no encontrado' })
+      res.json(user)
+    } catch (err) {
+      res.status(500).json({ error: 'Error al obtener usuario' })
+    }
+  })
+
+  // PUT /api/users/:id
+  router.put('/users/:id', adminOnly, async (req, res) => {
+    try {
+      const updates = req.body
+      if (updates.password) {
+        const user = await User.findById(req.params.id)
+        if (!user) return res.status(404).json({ error: 'Usuario no encontrado' })
+        user.password = updates.password
+        await user.save()
+        return res.json({ success: true, user: user.toJSON() })
+      }
+      const updated = await User.findByIdAndUpdate(req.params.id, updates, { new: true }).select('-password')
+      if (!updated) return res.status(404).json({ error: 'Usuario no encontrado' })
+      res.json(updated)
+    } catch (err) {
+      res.status(500).json({ error: 'Error al actualizar usuario' })
+    }
+  })
+
+  // DELETE /api/users/:id
+  router.delete('/users/:id', adminOnly, async (req, res) => {
+    try {
+      await User.findByIdAndDelete(req.params.id)
+      res.json({ success: true, message: 'Usuario eliminado' })
+    } catch (err) {
+      res.status(500).json({ error: 'Error al eliminar usuario' })
+    }
+  })
+}
