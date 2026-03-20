@@ -1,12 +1,19 @@
 import React from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import LoginFinal from './pages/LoginFinal.tsx'
+import DashboardFinal from './pages/DashboardFinal.tsx'
+import './App.css'
 
 const App: React.FC = () => {
   return (
-    <div style={{ padding: '2rem' }}>
-      <h1>CLAUDIA Express - Frontend (TypeScript ready)</h1>
-      <p>Este archivo está preparado para migrar a TS en fases futuras.</p>
-    </div>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<LoginFinal />} />
+        <Route path="/dashboard" element={<DashboardFinal />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App

@@ -4,7 +4,21 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const session = require('express-session');
-const MongoStore = require('connect-mongo');
+// Compatibilidad con distintas versiones/exports de connect-mongo
+const _connectMongo = require('connect-mongo');
+let MongoStore;
+if (_connectMongo && typeof _connectMongo.create === 'function') {
+  MongoStore = _connectMongo; // v4+ API: MongoStore.create()
+} else if (_connectMongo && _connectMongo.default && typeof _connectMongo.default.create === 'function') {
+  MongoStore = _connectMongo.default;
+} else if (typeof _connectMongo === 'function') {
+  // v3 style: require('connect-mongo')(session)
+  MongoStore = _connectMongo(session);
+} else if (_connectMongo && _connectMongo.default && typeof _connectMongo.default === 'function') {
+  MongoStore = _connectMongo.default(session);
+} else {
+  throw new Error('connect-mongo: versión incompatible o export inesperado');
+}
 const User = require('./User');
 const { AccessLog, ModificationLog } = require('./Logs');
 const Message = require('./Message');
@@ -22,14 +36,31 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/claudi
 
 // Session configuration should be registered before modular bootstrap so
 // modular routes can rely on req.session
+// Configurar store de sesión dependiendo de la API detectada
+const sessionStore = (function(){
+  // Si tiene método create, usamos la API moderna
+  if (MongoStore && typeof MongoStore.create === 'function') {
+    return MongoStore.create({ mongoUrl: MONGODB_URI, touchAfter: 24 * 3600 });
+  }
+
+  // Si MongoStore es ya una clase/constructor (v3 style), instanciamos
+  try {
+    return new MongoStore({ mongooseConnection: mongoose.connection, touchAfter: 24 * 3600 });
+  } catch (e) {
+    // último recurso: si MongoStore fue creado por require('connect-mongo')(session)
+    if (typeof MongoStore === 'function' && MongoStore.length === 1) {
+      const StoreCtor = MongoStore;
+      return new StoreCtor({ mongooseConnection: mongoose.connection, touchAfter: 24 * 3600 });
+    }
+    throw e;
+  }
+})();
+
 app.use(session({
   secret: process.env.SESSION_SECRET || 'claudia-space-secret-key',
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({
-    mongoUrl: MONGODB_URI,
-    touchAfter: 24 * 3600
-  }),
+  store: sessionStore,
   cookie: {
     maxAge: 1000 * 60 * 60 * 24
   }
