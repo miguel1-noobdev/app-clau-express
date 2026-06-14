@@ -54,12 +54,9 @@ const Dashboard: React.FC = () => {
             // FIX: Access the 'logs' property of the response object
             setLogs(Array.isArray(logsData.logs) ? logsData.logs.slice(0, 20) : []);
           }
-      } else {
-        navigate('/login');
       }
     } catch (err) {
-      console.error(err);
-      navigate('/login');
+      console.error('Error fetching data:', err);
     } finally {
       setLoading(false);
     }
