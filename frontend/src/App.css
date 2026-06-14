@@ -342,3 +342,202 @@ h1, h2, h3, h4 {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* ════════════════════════════════════════════════
+   ADMIN USERS TABLE & MODAL STYLES
+   ════════════════════════════════════════════════ */
+
+/* Modal overlay: fondo oscuro semitransparente que cubre toda la pantalla */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Modal container: centrado, con glass-card, max-width para no romper en desktop */
+.modal-container {
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Tabla de administración de usuarios */
+.admin-table {
+  width: 100%;
+}
+
+.admin-table th {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  padding: 0.6rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-table td {
+  padding: 0.6rem 0.5rem;
+  vertical-align: middle;
+}
+
+/* Badges de rol con colores distintivos */
+.role-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.role-admin {
+  background: rgba(255, 62, 62, 0.15);
+  color: var(--stark-red);
+  border: 1px solid rgba(255, 62, 62, 0.3);
+}
+
+.role-supervisor {
+  background: rgba(255, 215, 0, 0.15);
+  color: var(--stark-gold);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.role-user {
+  background: rgba(0, 212, 255, 0.15);
+  color: var(--stark-cyan);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+}
+
+/* Badges de estado activo / bloqueado */
+.status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.status-active {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.status-blocked {
+  background: rgba(255, 62, 62, 0.15);
+  color: var(--stark-red);
+  border: 1px solid rgba(255, 62, 62, 0.3);
+}
+
+/* Contenedor de botones de acción */
+.action-buttons {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+/* Botón de acción base: cuadrado pequeño, sin texto, solo icono */
+.action-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  border: 1px solid;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+}
+
+.action-btn:active {
+  transform: translateY(0);
+}
+
+/* Colores específicos para cada tipo de acción */
+.action-edit {
+  border-color: var(--stark-cyan);
+  color: var(--stark-cyan);
+}
+.action-edit:hover {
+  background: rgba(0, 212, 255, 0.15);
+}
+
+.action-block {
+  border-color: var(--stark-red);
+  color: var(--stark-red);
+}
+.action-block:hover {
+  background: rgba(255, 62, 62, 0.15);
+}
+
+.action-unblock {
+  border-color: #22c55e;
+  color: #22c55e;
+}
+.action-unblock:hover {
+  background: rgba(34, 197, 94, 0.15);
+}
+
+.action-reset {
+  border-color: var(--stark-gold);
+  color: var(--stark-gold);
+}
+.action-reset:hover {
+  background: rgba(255, 215, 0, 0.15);
+}
+
+.action-delete {
+  border-color: #888;
+  color: #888;
+}
+.action-delete:hover {
+  background: rgba(255, 62, 62, 0.15);
+  border-color: var(--stark-red);
+  color: var(--stark-red);
+}
+
+/* Responsive: en pantallas pequeñas, la tabla se scroll horizontalmente */
+@media (max-width: 640px) {
+  .admin-table {
+    font-size: 0.7rem;
+  }
+  .admin-table th,
+  .admin-table td {
+    padding: 0.4rem 0.3rem;
+  }
+  .action-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+  }
+  .role-badge,
+  .status-badge {
+    font-size: 0.55rem;
+    padding: 1px 4px;
+  }
+}
