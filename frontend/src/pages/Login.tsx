@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api.service';
 
-const LoginFinal: React.FC = () => {
+const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -104,4 +104,4 @@ const LoginFinal: React.FC = () => {
   );
 };
 
-export default LoginFinal;
+export default Login;

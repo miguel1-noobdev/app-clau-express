@@ -21,7 +21,7 @@ interface User {
   lastLogin?: string;
 }
 
-const DashboardFinal: React.FC = () => {
+const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('resumen');
   const [user, setUser] = useState<any>(null);
   const [records, setRecords] = useState<Record[]>([]);
@@ -295,4 +295,4 @@ const DashboardFinal: React.FC = () => {
   );
 };
 
-export default DashboardFinal;
+export default Dashboard;
