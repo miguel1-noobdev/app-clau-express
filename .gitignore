@@ -2,4 +2,9 @@
 .env
 *.log
 .DS_Store
-.env
+dist/
+test-results/
+coverage/
+*.tmp
+*.bak
+*.swp

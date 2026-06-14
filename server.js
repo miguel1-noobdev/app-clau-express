@@ -1,27 +1,14 @@
-﻿require('dotenv').config();
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const session = require('express-session');
-// Compatibilidad con distintas versiones/exports de connect-mongo
-const _connectMongo = require('connect-mongo');
-let MongoStore;
-if (_connectMongo && typeof _connectMongo.create === 'function') {
-  MongoStore = _connectMongo; // v4+ API: MongoStore.create()
-} else if (_connectMongo && _connectMongo.default && typeof _connectMongo.default.create === 'function') {
-  MongoStore = _connectMongo.default;
-} else if (typeof _connectMongo === 'function') {
-  // v3 style: require('connect-mongo')(session)
-  MongoStore = _connectMongo(session);
-} else if (_connectMongo && _connectMongo.default && typeof _connectMongo.default === 'function') {
-  MongoStore = _connectMongo.default(session);
-} else {
-  throw new Error('connect-mongo: versión incompatible o export inesperado');
-}
-const User = require('./User');
-const { AccessLog, ModificationLog } = require('./Logs');
-const Message = require('./Message');
+const MongoStore = require('connect-mongo').default;
+const User = require('./src/models/User');
+const { AccessLog, ModificationLog } = require('./src/models/Logs');
+const Message = require('./src/models/Message');
+const Record = require('./src/models/Record');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -29,7 +16,6 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
 
 // MongoDB URI (define before session/bootstrap to ensure availability)
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/claudia';
@@ -37,24 +23,10 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/claudi
 // Session configuration should be registered before modular bootstrap so
 // modular routes can rely on req.session
 // Configurar store de sesión dependiendo de la API detectada
-const sessionStore = (function(){
-  // Si tiene método create, usamos la API moderna
-  if (MongoStore && typeof MongoStore.create === 'function') {
-    return MongoStore.create({ mongoUrl: MONGODB_URI, touchAfter: 24 * 3600 });
-  }
-
-  // Si MongoStore es ya una clase/constructor (v3 style), instanciamos
-  try {
-    return new MongoStore({ mongooseConnection: mongoose.connection, touchAfter: 24 * 3600 });
-  } catch (e) {
-    // último recurso: si MongoStore fue creado por require('connect-mongo')(session)
-    if (typeof MongoStore === 'function' && MongoStore.length === 1) {
-      const StoreCtor = MongoStore;
-      return new StoreCtor({ mongooseConnection: mongoose.connection, touchAfter: 24 * 3600 });
-    }
-    throw e;
-  }
-})();
+const sessionStore = MongoStore.create({ 
+  mongoUrl: MONGODB_URI, 
+  touchAfter: 24 * 3600 
+});
 
 app.use(session({
   secret: process.env.SESSION_SECRET || 'claudia-space-secret-key',
@@ -66,17 +38,7 @@ app.use(session({
   }
 }));
 
-// Attempt to bootstrap modular backend if present (Phase 1 of refactor)
-try {
-  const modularBootstrap = require('./backend/src/app');
-  if (typeof modularBootstrap === 'function') {
-    modularBootstrap(app);
-    console.log('🟢 Backend modular bootstrap loaded');
-  }
-} catch (err) {
-  // Silently ignore if not present yet; will be wired by agents later
-  console.log('ℹ No modular backend bootstrap detected, continuing with monolith.');
-}
+// Monolith backend (modular scaffolding moved to docs/backend-scaffolding/)
 
 // MongoDB Connection
 // MONGODB_URI is defined earlier in this file to ensure it's available for session setup
@@ -101,19 +63,7 @@ mongoose.connect(MONGODB_URI)
   })
   .catch(err => console.error(' Error de conexión a MongoDB:', err));
 
-// Record Schema
-const recordSchema = new mongoose.Schema({
-  fecha: { type: String, required: true },
-  horaInicio: { type: String, required: true },
-  horaFin: { type: String, required: true },
-  totalHoras: { type: Number, required: true },
-  parador: { type: String, required: true },
-  notas: { type: String, default: '' },
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  createdAt: { type: Date, default: Date.now }
-});
-
-const Record = mongoose.model('Record', recordSchema);
+// Record model moved to src/models/Record.js
 
 // Middleware to check authentication
 const isAuthenticated = (req, res, next) => {
@@ -1239,13 +1189,31 @@ app.put('/api/messages/:username/mark-read', isAuthenticated, async (req, res) =
   }
 });
 
-// Serve index.html for root route
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+// Serve React build in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, 'frontend', 'dist')));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'dist', 'index.html'));
+  });
+}
 
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
+  const os = require('os');
+  const networkInterfaces = os.networkInterfaces();
+  let localIp = 'localhost';
+  
+  // Find primary IPv4 interface
+  for (const name of Object.keys(networkInterfaces)) {
+    for (const net of networkInterfaces[name]) {
+      if (net.family === 'IPv4' && !net.internal) {
+        localIp = net.address;
+        break;
+      }
+    }
+  }
+
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-  console.log(`📱 Acceso desde red local: http://192.168.1.38:${PORT}`);
+  console.log(`📱 Acceso desde red local: http://${localIp}:${PORT}`);
 });
+

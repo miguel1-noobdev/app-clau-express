@@ -1,12 +1,321 @@
-/* Very light styling to start the React frontend */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
 :root {
-  --bg: #f8f9fa;
-  --text: #111;
+  /* Stark Industries Signature Palette */
+  --stark-cyan: #00d4ff;
+  --stark-gold: #ffd700;
+  --stark-red: #ff3e3e; /* Accent for alerts */
+  
+  /* Shared Tokens */
+  --font-main: 'Inter', sans-serif;
+  --font-display: 'Outfit', sans-serif;
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Light Theme Variables */
+[data-theme='light'] {
+  --bg-app: #f5f7fa;
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --text-primary: #1a1a2e;
+  --text-secondary: #4b5563;
+  --border: rgba(0, 0, 0, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.4);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --input-bg: #fff;
+  --input-text: #1a1a2e;
+}
+
+/* Dark Theme Variables (Arc Reactor Mode) */
+[data-theme='dark'] {
+  --bg-app: #0a0a0b;
+  --bg-card: rgba(18, 18, 22, 0.85);
+  --text-primary: #ffffff; /* Brighter for better contrast */
+  --text-secondary: #00d4ff;
+  --border: rgba(0, 212, 255, 0.25);
+  --glass-bg: rgba(10, 10, 11, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --input-bg: #1f2937;
+  --input-text: #fff;
+}
+
+/* Reset & Global Styles */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
 html, body, #root {
   height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-main);
+  background: var(--bg-app);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  transition: background 0.5s ease;
 }
+
 body {
-  margin: 0; padding: 0; background: var(--bg); color: var(--text);
+  display: flex;
+  flex-direction: column;
 }
-.container { padding: 1rem; }
+
+/* Typography */
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+
+/* Mobile-First Layout Patterns */
+.app-container {
+  max-width: 100%;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-height: 100vh;
+}
+
+.stark-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.stark-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--stark-cyan);
+  box-shadow: 0 8px 32px rgba(0, 212, 255, 0.15);
+}
+
+.stark-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 212, 255, 0.1),
+    transparent
+  );
+  transition: 0.5s;
+}
+
+.stark-card:hover::after {
+  left: 100%;
+}
+
+.badge-night {
+  background: rgba(139, 92, 246, 0.2);
+  color: #a78bfa;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+@keyframes scanner {
+  0% { top: 0; }
+  100% { top: 100%; }
+}
+
+.scanner-line {
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  background: var(--stark-cyan);
+  opacity: 0.2;
+  box-shadow: 0 0 10px var(--stark-cyan);
+  animation: scanner 4s linear infinite;
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .app-container {
+    max-width: 1200px; /* Expansive view for PC */
+    margin: 2rem auto;
+    padding: 0 2rem;
+  }
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 300px 1fr; /* Sidebar for reports/nav on PC */
+  }
+}
+
+.tab-nav {
+  display: flex;
+  overflow-x: auto;
+  gap: 0.5rem;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: 0.3s;
+  border-bottom: 2px solid transparent;
+}
+
+.tab-btn.active {
+  color: var(--stark-cyan);
+  border-bottom-color: var(--stark-cyan);
+}
+
+.report-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+}
+
+/* Glassmorphism Card Style */
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+}
+
+.glass-card:active {
+  transform: scale(0.98);
+}
+
+/* Modern Inputs (Stark Style) */
+.stark-input-group {
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stark-input-group label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stark-input {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  color: var(--input-text);
+  outline: none;
+  transition: var(--transition);
+}
+
+.stark-input:focus {
+  border-color: var(--stark-cyan);
+  box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.2);
+}
+
+/* Premium Buttons */
+.btn-primary {
+  background: linear-gradient(135deg, var(--stark-cyan), #00a3ff);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.875rem 1.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -10px rgba(0, 212, 255, 0.5);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Theme Toggle Button Style */
+.theme-toggle-btn {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+  color: var(--stark-gold);
+  transition: var(--transition);
+}
+
+.theme-toggle-btn:hover {
+  background: var(--stark-gold);
+  color: #000;
+}
+
+/* Micro-Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Arc Reactor Accent */
+.arc-reactor-glow {
+  box-shadow: 0 0 15px var(--stark-cyan);
+}
+
+/* Utility classes */
+.text-cyan { color: var(--stark-cyan); }
+.text-gold { color: var(--stark-gold); }
+.mt-4 { margin-top: 1rem; }

@@ -1,43 +1,62 @@
 ﻿# CLAUDIA Express
 
-Aplicación de registro de horas de trabajo construida con Node.js, Express y MongoDB.
+Aplicación de registro de horas de trabajo construida con Node.js, Express, MongoDB y React.
+
+## Estructura del Proyecto
+
+```
+├── server.js              # Backend Express
+├── src/models/            # Modelos MongoDB
+├── frontend/              # Frontend React (Vite + TypeScript)
+│   ├── src/pages/         # Login, Dashboard
+│   ├── src/components/    # Componentes compartidos
+│   ├── src/services/      # API service
+│   └── e2e/               # Tests E2E (Playwright)
+└── .env                   # Configuración
+```
 
 ## Requisitos
 
-- Node.js (v14 o superior)
-- Cuenta gratuita en MongoDB Atlas
+- Node.js (v18 o superior)
+- Cuenta en MongoDB Atlas
 
 ## Instalación
 
 1. Clonar el repositorio
-2. Instalar dependencias:
+2. Instalar dependencias del backend:
 ```bash
 npm install
 ```
+3. Instalar dependencias del frontend:
+```bash
+cd frontend && npm install
+```
 
-3. Crear archivo `.env` con tu conexión a MongoDB:
+4. Crear archivo `.env` con tu conexión a MongoDB:
 ```
 MONGODB_URI=tu_conexion_mongodb_atlas
 PORT=3000
+SESSION_SECRET=tu_secreto
 ```
 
-4. Iniciar servidor de desarrollo:
+5. Iniciar backend:
 ```bash
-npm run dev
+npm start
 ```
 
-5. Abrir navegador en `http://localhost:3000`
+6. Iniciar frontend (desarrollo):
+```bash
+cd frontend && npm start
+```
 
 ## Despliegue
 
-Esta aplicación puede desplegarse en:
-- Render
-- Vercel
-- Railway
-- Heroku
+- **Backend**: Render, Railway, Heroku
+- **Frontend**: Vercel, Netlify (o servido por el backend en producción)
 
 ## Tecnologías
 
-- **Backend**: Node.js + Express
-- **Base de Datos**: MongoDB Atlas
-- **Frontend**: HTML5 + CSS3 + JavaScript vanilla
+- **Backend**: Node.js + Express + MongoDB
+- **Frontend**: React 18 + TypeScript + Vite
+- **Testing**: Vitest + Playwright
+- **Auth**: Express Sessions + MongoDB Store
