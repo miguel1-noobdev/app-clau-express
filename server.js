@@ -2,9 +2,12 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const { body, param, validationResult } = require('express-validator');
 const path = require('path');
 const session = require('express-session');
-const MongoStore = require('connect-mongo').default;
+const MongoStore = require('connect-mongo');
 const User = require('./src/models/User');
 const { AccessLog, ModificationLog } = require('./src/models/Logs');
 const Message = require('./src/models/Message');
@@ -16,6 +19,34 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(helmet()); // Security headers
+
+// Rate limiting
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: { error: 'Demasiadas solicitudes, intenta de nuevo en 15 minutos' }
+});
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // limit each IP to 5 login attempts per windowMs
+  message: { error: 'Demasiados intentos de login, intenta de nuevo en 15 minutos' },
+  skipSuccessfulRequests: true // don't count successful logins
+});
+
+app.use('/api/', generalLimiter);
+
+// Validation middleware
+const validate = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ 
+      errors: errors.array().map(err => err.msg)
+    });
+  }
+  next();
+};
 
 // MongoDB URI (define before session/bootstrap to ensure availability)
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/claudia';
@@ -91,7 +122,12 @@ const isAdmin = async (req, res, next) => {
 // ===== AUTH ROUTES =====
 
 // Login
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', 
+  loginLimiter,
+  body('username').trim().notEmpty().withMessage('El usuario es requerido'),
+  body('password').notEmpty().withMessage('La contraseña es requerida'),
+  validate,
+  async (req, res) => {
   try {
     const { username, password } = req.body;
 
@@ -225,19 +261,21 @@ app.get('/api/me', isAuthenticated, async (req, res) => {
 });
 
 // Change password (for first-time login or user request)
-app.post('/api/auth/change-password', async (req, res) => {
+app.post('/api/auth/change-password',
+  body('userId')
+    .notEmpty().withMessage('El ID de usuario es requerido')
+    .isMongoId().withMessage('ID de usuario inválido'),
+  body('currentPassword')
+    .notEmpty().withMessage('La contraseña actual es requerida'),
+  body('newPassword')
+    .notEmpty().withMessage('La nueva contraseña es requerida')
+    .isLength({ min: 8 }).withMessage('La contraseña debe tener al menos 8 caracteres')
+    .matches(/[A-Z]/).withMessage('La contraseña debe incluir al menos una mayúscula')
+    .matches(/[0-9]/).withMessage('La contraseña debe incluir al menos un número'),
+  validate,
+  async (req, res) => {
   try {
     const { userId, currentPassword, newPassword } = req.body;
-
-    // Validate new password
-    if (!newPassword || newPassword.length < 8) {
-      return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
-    }
-
-    // Check for uppercase and number
-    if (!/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
-      return res.status(400).json({ error: 'La contraseña debe incluir al menos una mayúscula y un número' });
-    }
 
     const user = await User.findById(userId);
     if (!user) {
@@ -276,7 +314,20 @@ app.post('/api/auth/change-password', async (req, res) => {
 });
 
 // Update user profile (contact info and avatar)
-app.put('/api/profile', isAuthenticated, async (req, res) => {
+app.put('/api/profile',
+  isAuthenticated,
+  body('email')
+    .optional({ checkFalsy: true })
+    .isEmail().withMessage('Email inválido'),
+  body('phone')
+    .optional()
+    .isString().withMessage('Teléfono inválido')
+    .isLength({ max: 20 }).withMessage('El teléfono no puede exceder 20 caracteres'),
+  body('avatar')
+    .optional()
+    .isString().withMessage('Avatar inválido'),
+  validate,
+  async (req, res) => {
   try {
     const { phone, email, avatar } = req.body;
 
@@ -300,49 +351,6 @@ app.put('/api/profile', isAuthenticated, async (req, res) => {
         email: user.email,
         avatar: user.avatar
       }
-    });
-  } catch (error) {
-    console.error('Update profile error:', error);
-    res.status(500).json({ error: 'Error al actualizar perfil' });
-  }
-});
-
-// ===== PROFILE ROUTES =====
-
-// Get current user profile
-app.get('/api/me', isAuthenticated, async (req, res) => {
-  try {
-    const user = await User.findById(req.session.userId).select('-password');
-    res.json({
-      success: true,
-      user: user
-    });
-  } catch (error) {
-    console.error('Get profile error:', error);
-    res.status(500).json({ error: 'Error al obtener perfil' });
-  }
-});
-
-// Update user profile
-app.put('/api/profile', isAuthenticated, async (req, res) => {
-  try {
-    const { avatar, phone, email } = req.body;
-    const updateData = {};
-
-    // Only update fields that are provided
-    if (avatar !== undefined) updateData.avatar = avatar;
-    if (phone !== undefined) updateData.phone = phone;
-    if (email !== undefined) updateData.email = email;
-
-    const updatedUser = await User.findByIdAndUpdate(
-      req.session.userId,
-      updateData,
-      { new: true }
-    ).select('-password');
-
-    res.json({
-      success: true,
-      user: updatedUser
     });
   } catch (error) {
     console.error('Update profile error:', error);
@@ -403,7 +411,30 @@ app.get('/api/users', isAuthenticated, isAdmin, async (req, res) => {
 });
 
 // Create user
-app.post('/api/users', isAuthenticated, isAdmin, async (req, res) => {
+app.post('/api/users', 
+  isAuthenticated, 
+  isAdmin,
+  body('username')
+    .trim()
+    .notEmpty().withMessage('El usuario es requerido')
+    .isLength({ min: 3, max: 30 }).withMessage('El usuario debe tener entre 3 y 30 caracteres')
+    .matches(/^[a-zA-Z0-9_]+$/).withMessage('El usuario solo puede contener letras, números y guiones bajos'),
+  body('password')
+    .notEmpty().withMessage('La contraseña es requerida')
+    .isLength({ min: 8 }).withMessage('La contraseña debe tener al menos 8 caracteres')
+    .matches(/[A-Z]/).withMessage('La contraseña debe incluir al menos una mayúscula')
+    .matches(/[0-9]/).withMessage('La contraseña debe incluir al menos un número'),
+  body('role')
+    .notEmpty().withMessage('El rol es requerido')
+    .isIn(['user', 'admin', 'supervisor']).withMessage('Rol inválido'),
+  body('email')
+    .optional({ checkFalsy: true })
+    .isEmail().withMessage('Email inválido'),
+  body('phone')
+    .optional({ checkFalsy: true })
+    .isString().withMessage('Teléfono inválido'),
+  validate,
+  async (req, res) => {
   try {
     const { username, password, role, phone, email } = req.body;
 
@@ -448,7 +479,27 @@ app.post('/api/users', isAuthenticated, isAdmin, async (req, res) => {
 });
 
 // Update user
-app.put('/api/users/:id', isAuthenticated, isAdmin, async (req, res) => {
+app.put('/api/users/:id',
+  isAuthenticated,
+  isAdmin,
+  param('id').isMongoId().withMessage('ID de usuario inválido'),
+  body('username')
+    .optional()
+    .trim()
+    .notEmpty().withMessage('El usuario no puede estar vacío')
+    .isLength({ min: 3, max: 30 }).withMessage('El usuario debe tener entre 3 y 30 caracteres')
+    .matches(/^[a-zA-Z0-9_]+$/).withMessage('El usuario solo puede contener letras, números y guiones bajos'),
+  body('role')
+    .optional()
+    .isIn(['user', 'admin', 'supervisor']).withMessage('Rol inválido'),
+  body('password')
+    .optional()
+    .notEmpty().withMessage('La contraseña no puede estar vacía')
+    .isLength({ min: 8 }).withMessage('La contraseña debe tener al menos 8 caracteres')
+    .matches(/[A-Z]/).withMessage('La contraseña debe incluir al menos una mayúscula')
+    .matches(/[0-9]/).withMessage('La contraseña debe incluir al menos un número'),
+  validate,
+  async (req, res) => {
   try {
     const { username, password, role } = req.body;
     const updateData = { username, role };
@@ -506,7 +557,15 @@ app.put('/api/users/:id/toggle-status', isAuthenticated, isAdmin, async (req, re
 });
 
 // Change user role
-app.put('/api/users/:id/role', isAuthenticated, isAdmin, async (req, res) => {
+app.put('/api/users/:id/role',
+  isAuthenticated,
+  isAdmin,
+  param('id').isMongoId().withMessage('ID de usuario inválido'),
+  body('role')
+    .notEmpty().withMessage('El rol es requerido')
+    .isIn(['user', 'admin', 'supervisor']).withMessage('Rol inválido'),
+  validate,
+  async (req, res) => {
   try {
     const { role } = req.body;
 
@@ -712,7 +771,17 @@ app.get('/api/messages/:username', isAuthenticated, async (req, res) => {
 });
 
 // Send a new message
-app.post('/api/messages', isAuthenticated, async (req, res) => {
+app.post('/api/messages',
+  isAuthenticated,
+  body('to')
+    .trim()
+    .notEmpty().withMessage('El destinatario es requerido'),
+  body('message')
+    .trim()
+    .notEmpty().withMessage('El mensaje es requerido')
+    .isLength({ max: 1000 }).withMessage('El mensaje no puede exceder 1000 caracteres'),
+  validate,
+  async (req, res) => {
   try {
     const { to, message } = req.body;
     const from = req.session.username;
@@ -854,7 +923,27 @@ app.get('/api/records', isAuthenticated, async (req, res) => {
 });
 
 // POST new record
-app.post('/api/records', isAuthenticated, async (req, res) => {
+app.post('/api/records', 
+  isAuthenticated,
+  body('fecha')
+    .notEmpty().withMessage('La fecha es requerida')
+    .isISO8601().withMessage('Fecha inválida'),
+  body('horaInicio')
+    .notEmpty().withMessage('La hora de inicio es requerida')
+    .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Hora de inicio inválida (formato HH:MM)'),
+  body('horaFin')
+    .notEmpty().withMessage('La hora de fin es requerida')
+    .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Hora de fin inválida (formato HH:MM)'),
+  body('parador')
+    .trim()
+    .notEmpty().withMessage('El parador es requerido')
+    .isLength({ max: 100 }).withMessage('El parador no puede exceder 100 caracteres'),
+  body('notas')
+    .optional()
+    .isString().withMessage('Las notas deben ser texto')
+    .isLength({ max: 500 }).withMessage('Las notas no pueden exceder 500 caracteres'),
+  validate,
+  async (req, res) => {
   try {
     const newRecord = new Record({
       ...req.body,
@@ -868,7 +957,29 @@ app.post('/api/records', isAuthenticated, async (req, res) => {
 });
 
 // PUT update record
-app.put('/api/records/:id', isAuthenticated, async (req, res) => {
+app.put('/api/records/:id',
+  isAuthenticated,
+  param('id').isMongoId().withMessage('ID de registro inválido'),
+  body('fecha')
+    .optional()
+    .isISO8601().withMessage('Fecha inválida'),
+  body('horaInicio')
+    .optional()
+    .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Hora de inicio inválida (formato HH:MM)'),
+  body('horaFin')
+    .optional()
+    .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Hora de fin inválida (formato HH:MM)'),
+  body('parador')
+    .optional()
+    .trim()
+    .notEmpty().withMessage('El parador no puede estar vacío')
+    .isLength({ max: 100 }).withMessage('El parador no puede exceder 100 caracteres'),
+  body('notas')
+    .optional()
+    .isString().withMessage('Las notas deben ser texto')
+    .isLength({ max: 500 }).withMessage('Las notas no pueden exceder 500 caracteres'),
+  validate,
+  async (req, res) => {
   try {
     const record = await Record.findOne({
       _id: req.params.id,
@@ -913,7 +1024,34 @@ app.delete('/api/records/:id', isAuthenticated, async (req, res) => {
 // ===== ADMIN RECORD MANAGEMENT =====
 
 // Admin: Edit any user's record
-app.put('/api/records/:id/admin-edit', isAuthenticated, isAdmin, async (req, res) => {
+app.put('/api/records/:id/admin-edit',
+  isAuthenticated,
+  isAdmin,
+  param('id').isMongoId().withMessage('ID de registro inválido'),
+  body('fecha')
+    .optional()
+    .isISO8601().withMessage('Fecha inválida'),
+  body('horaInicio')
+    .optional()
+    .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Hora de inicio inválida (formato HH:MM)'),
+  body('horaFin')
+    .optional()
+    .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Hora de fin inválida (formato HH:MM)'),
+  body('parador')
+    .optional()
+    .trim()
+    .notEmpty().withMessage('El parador no puede estar vacío')
+    .isLength({ max: 100 }).withMessage('El parador no puede exceder 100 caracteres'),
+  body('notas')
+    .optional()
+    .isString().withMessage('Las notas deben ser texto')
+    .isLength({ max: 500 }).withMessage('Las notas no pueden exceder 500 caracteres'),
+  body('reason')
+    .optional()
+    .isString().withMessage('La razón debe ser texto')
+    .isLength({ max: 200 }).withMessage('La razón no puede exceder 200 caracteres'),
+  validate,
+  async (req, res) => {
   try {
     const record = await Record.findById(req.params.id).populate('userId', 'username');
 
@@ -1004,188 +1142,6 @@ app.delete('/api/records/:id/admin-delete', isAuthenticated, isAdmin, async (req
   } catch (error) {
     console.error('Admin delete record error:', error);
     res.status(500).json({ error: 'Error al eliminar registro' });
-  }
-});
-
-// ===== MESSAGING ROUTES =====
-
-// Get conversations list
-app.get('/api/messages/conversations', isAuthenticated, async (req, res) => {
-  try {
-    const currentUser = req.session.username;
-    const isAdmin = req.session.role === 'admin';
-
-    let conversations = [];
-
-    if (isAdmin) {
-      // Admin: get all users they've chatted with
-      const messages = await Message.find({
-        $or: [{ from: currentUser }, { to: currentUser }]
-      }).sort({ timestamp: -1 });
-
-      // Get unique users
-      const userSet = new Set();
-      messages.forEach(msg => {
-        const otherUser = msg.from === currentUser ? msg.to : msg.from;
-        userSet.add(otherUser);
-      });
-
-      // Build conversations array
-      for (const username of userSet) {
-        const lastMessage = await Message.findOne({
-          $or: [
-            { from: currentUser, to: username },
-            { from: username, to: currentUser }
-          ]
-        }).sort({ timestamp: -1 });
-
-        const unreadCount = await Message.countDocuments({
-          from: username,
-          to: currentUser,
-          isRead: false
-        });
-
-        conversations.push({
-          username,
-          lastMessage: lastMessage ? lastMessage.message : '',
-          lastTimestamp: lastMessage ? lastMessage.timestamp : null,
-          unreadCount
-        });
-      }
-    } else {
-      // Regular user: only conversation with admin
-      const lastMessage = await Message.findOne({
-        $or: [
-          { from: currentUser, to: 'admin' },
-          { from: 'admin', to: currentUser }
-        ]
-      }).sort({ timestamp: -1 });
-
-      const unreadCount = await Message.countDocuments({
-        from: 'admin',
-        to: currentUser,
-        isRead: false
-      });
-
-      conversations.push({
-        username: 'admin',
-        lastMessage: lastMessage ? lastMessage.message : '',
-        lastTimestamp: lastMessage ? lastMessage.timestamp : null,
-        unreadCount
-      });
-    }
-
-    res.json({ success: true, conversations });
-  } catch (error) {
-    console.error('Get conversations error:', error);
-    res.status(500).json({ error: 'Error al obtener conversaciones' });
-  }
-});
-
-// Get messages with specific user
-app.get('/api/messages/:username', isAuthenticated, async (req, res) => {
-  try {
-    const currentUser = req.session.username;
-    const otherUser = req.params.username.toLowerCase();
-
-    // Verify user exists
-    const userExists = await User.findOne({ username: otherUser });
-    if (!userExists) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
-    }
-
-    // Get messages
-    const messages = await Message.find({
-      $or: [
-        { from: currentUser, to: otherUser },
-        { from: otherUser, to: currentUser }
-      ]
-    }).sort({ timestamp: 1 });
-
-    // Mark messages as read
-    await Message.updateMany(
-      { from: otherUser, to: currentUser, isRead: false },
-      { isRead: true }
-    );
-
-    res.json({ success: true, messages });
-  } catch (error) {
-    console.error('Get messages error:', error);
-    res.status(500).json({ error: 'Error al obtener mensajes' });
-  }
-});
-
-// Send message
-app.post('/api/messages', isAuthenticated, async (req, res) => {
-  try {
-    const { to, message } = req.body;
-
-    if (!to || !message) {
-      return res.status(400).json({ error: 'Destinatario y mensaje son requeridos' });
-    }
-
-    if (message.trim().length === 0) {
-      return res.status(400).json({ error: 'El mensaje no puede estar vacío' });
-    }
-
-    if (message.length > 1000) {
-      return res.status(400).json({ error: 'El mensaje es demasiado largo (máx 1000 caracteres)' });
-    }
-
-    // Verify recipient exists
-    const recipient = await User.findOne({ username: to.toLowerCase() });
-    if (!recipient) {
-      return res.status(404).json({ error: 'Destinatario no encontrado' });
-    }
-
-    // Create message
-    const newMessage = new Message({
-      from: req.session.username,
-      to: to.toLowerCase(),
-      message: message.trim()
-    });
-
-    await newMessage.save();
-
-    res.status(201).json({
-      success: true,
-      message: newMessage
-    });
-  } catch (error) {
-    console.error('Send message error:', error);
-    res.status(500).json({ error: 'Error al enviar mensaje' });
-  }
-});
-
-// Get unread message count
-app.get('/api/messages/unread/count', isAuthenticated, async (req, res) => {
-  try {
-    const count = await Message.countDocuments({
-      to: req.session.username,
-      isRead: false
-    });
-
-    res.json({ success: true, count });
-  } catch (error) {
-    console.error('Get unread count error:', error);
-    res.status(500).json({ error: 'Error al obtener mensajes no leídos' });
-  }
-});
-
-// Mark conversation as read
-app.put('/api/messages/:username/mark-read', isAuthenticated, async (req, res) => {
-  try {
-    const otherUser = req.params.username.toLowerCase();
-
-    await Message.updateMany(
-      { from: otherUser, to: req.session.username, isRead: false },
-      { isRead: true }
-    );
-
-    res.json({ success: true, message: 'Mensajes marcados como leídos' });
-  } catch (error) {
-    console.error('Mark as read error:', error);
-    res.status(500).json({ error: 'Error al marcar mensajes como leídos' });
   }
 });
 
