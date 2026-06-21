@@ -1225,11 +1225,12 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Start server
-app.listen(PORT, '0.0.0.0', () => {
+const host = process.env.NODE_ENV === 'production' ? '127.0.0.1' : '0.0.0.0';
+app.listen(PORT, host, () => {
   const os = require('os');
   const networkInterfaces = os.networkInterfaces();
   let localIp = 'localhost';
-  
+
   // Find primary IPv4 interface
   for (const name of Object.keys(networkInterfaces)) {
     for (const net of networkInterfaces[name]) {
