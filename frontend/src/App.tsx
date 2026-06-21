@@ -2,10 +2,13 @@ import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
+import AdminDashboard from './pages/admin/AdminDashboard'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import './App.css'
 
-const App = () => {
+const ROUTES = { LOGIN: '/login', DASHBOARD: '/dashboard', ADMIN: '/admin' } as const;
+
+const App = (): JSX.Element => {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (localStorage.getItem('theme') as 'light' | 'dark') || 'light';
   });
@@ -22,13 +25,18 @@ const App = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={
+        <Route path={ROUTES.LOGIN} element={<Login />} />
+        <Route path={ROUTES.DASHBOARD} element={
           <ProtectedRoute>
             <Dashboard theme={theme} toggleTheme={toggleTheme} />
           </ProtectedRoute>
         } />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path={ROUTES.ADMIN} element={
+          <ProtectedRoute>
+            <AdminDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="*" element={<Navigate to={ROUTES.LOGIN} replace />} />
       </Routes>
     </BrowserRouter>
   );

@@ -2,35 +2,76 @@
 
 ## Change
 - **Name**: tanda2-admin-panel
-- **Phase**: 1 (Backend Foundation — Middleware + Service + Models Index)
-- **Branch**: `feature/admin-panel-pr1-middleware-service`
-- **Base**: `feature/admin-panel`
+- **Phase**: 4 (Test Refactor + Integration Tests)
+- **Branch**: `feature/admin-panel-pr4-tests`
+- **Base**: `feature/admin-panel-pr3-frontend`
 - **Mode**: Strict TDD
-- **Date**: 2026-06-21
+- **Date**: 2026-06-22
 
 ## TDD Cycle Evidence
 
+### Phase 1 (PR #1 — completed previously)
+
 | Task | Test File | Layer | Safety Net | RED | GREEN | TRIANGULATE | REFACTOR |
 |------|-----------|-------|------------|-----|-------|-------------|----------|
-| 1.1 | `tests/admin.service.test.js` | Unit | N/A (new) | Written | Passed | 2 cases (users + error) | Clean |
-| 1.2 | N/A | Structural | N/A (new) | N/A | N/A | Skipped: single possible output | N/A |
-| 1.3 | N/A | Structural | N/A (new) | N/A | N/A | Skipped: single possible output | N/A |
-| 1.4 | N/A | Structural | N/A (new) | N/A | N/A | Skipped: single possible output | N/A |
-| 1.5 | N/A | Structural | N/A (new) | N/A | N/A | Skipped: single possible output | N/A |
-| 1.6 | `tests/admin.service.test.js` | Unit | N/A (new) | Written | Passed | 2+ cases per function | Clean |
-| 1.7 | `tests/admin.service.test.js` | Unit | N/A (new) | Written | Passed | 2+ cases per function | Clean |
-| 1.8 | N/A | Refactor | 9/9 passing | N/A | N/A | N/A | Verified no console.log, no hardcoded secrets |
-| 1.9 | `tests/admin.service.test.js` | Unit | 9/9 passing | Written | Passed | 2+ cases per function | Clean |
+| 1.1 | `tests/admin.service.test.js` | Unit | N/A (new) | Written | Passed | 2 cases | Clean |
+| 1.2 | N/A | Structural | N/A (new) | N/A | N/A | Skipped | N/A |
+| 1.3 | N/A | Structural | N/A (new) | N/A | N/A | Skipped | N/A |
+| 1.4 | N/A | Structural | N/A (new) | N/A | N/A | Skipped | N/A |
+| 1.5 | N/A | Structural | N/A (new) | N/A | N/A | Skipped | N/A |
+| 1.6 | `tests/admin.service.test.js` | Unit | N/A (new) | Written | Passed | 2+ cases | Clean |
+| 1.7 | `tests/admin.service.test.js` | Unit | N/A (new) | Written | Passed | 2+ cases | Clean |
+| 1.8 | N/A | Refactor | 9/9 passing | N/A | N/A | N/A | Verified clean |
+| 1.9 | `tests/admin.service.test.js` | Unit | 9/9 passing | Written | Passed | 2+ cases | Clean |
 
-### Test Summary
-- **Total tests written**: 24 (for AdminService)
-- **Total tests passing**: 33 (including 9 pre-existing integration tests)
-- **Layers used**: Unit (24), Integration (9 pre-existing)
-- **Approval tests**: None — no refactoring tasks on existing code
-- **Pure functions created**: 12 (all AdminService functions are pure async functions with no side effects beyond DB calls)
+### Phase 2 (PR #2 — completed previously)
+
+| Task | Test File | Layer | Safety Net | RED | GREEN | TRIANGULATE | REFACTOR |
+|------|-----------|-------|------------|-----|-------|-------------|----------|
+| 2.1 | `tests/admin.routes.test.js` | Integration | 33/33 passing | Written | Passed | 11 cases (auth + ops + records) | Compressed to <300 lines |
+| 2.2 | N/A | Controller | 11/11 new passing | N/A | N/A | N/A | Clean |
+| 2.3 | N/A | Routes | 11/11 new passing | N/A | N/A | N/A | Clean |
+| 2.4 | N/A | Mount | 11/11 new passing | N/A | N/A | N/A | Clean |
+| 2.5 | N/A | Verification | 44/44 passing | N/A | N/A | N/A | Mount order confirmed |
+| 2.6 | `tests/admin.routes.test.js` | Integration | 44/44 passing | Written | Passed | 11 cases | Clean |
+
+### Phase 3 (PR #3 — completed previously)
+
+| Task | Test File | Layer | Safety Net | RED | GREEN | TRIANGULATE | REFACTOR |
+|------|-----------|-------|------------|-----|-------|-------------|----------|
+| 3.1 | `frontend/src/pages/admin/AdminDashboard.test.tsx` | Unit | 15/15 passing | Written | Passed | 4 cases (redirect, tabs, loading, error) | Clean |
+| 3.2 | N/A | Component | 15/15 passing | N/A | N/A | N/A | Clean |
+| 3.3 | `frontend/src/pages/admin/UserManager.test.tsx` | Unit | 15/15 passing | Written | Passed | 4 cases (table, modal, error, edit) | Clean |
+| 3.4 | N/A | Component | 15/15 passing | N/A | N/A | N/A | Clean |
+| 3.5 | N/A | Component | 19/19 passing | N/A | N/A | N/A | Clean |
+| 3.6 | N/A | Component | 19/19 passing | N/A | N/A | N/A | Clean |
+| 3.7 | N/A | Route | 19/19 passing | N/A | N/A | N/A | Clean |
+| 3.8 | N/A | Refactor | 19/19 passing | N/A | N/A | N/A | No empty catch blocks |
+| 3.9 | All frontend tests | Unit | 19/19 passing | N/A | N/A | N/A | Build + typecheck pass |
+
+### Phase 4 (PR #4 — this batch)
+
+| Task | Test File | Layer | Safety Net | RED | GREEN | TRIANGULATE | REFACTOR |
+|------|-----------|-------|------------|-----|-------|-------------|----------|
+| 4.1 | `tests/auth.test.js` | Refactor | 44/44 passing | N/A (structural) | Passed | Singleton pattern | Clean |
+| 4.2 | `tests/users.test.js` | Refactor | 44/44 passing | N/A (structural) | Passed | Singleton pattern + new tests | Clean |
+| 4.3 | `tests/records.test.js` | Refactor | 44/44 passing | N/A (structural) | Passed | Singleton pattern + new tests | Clean |
+| 4.4 | `tests/records.test.js` | Integration | 47/47 passing | Written | Passed | ModificationLog verified | Clean |
+| 4.5 | `tests/users.test.js` | Integration | 47/47 passing | Written | Passed | 403 + message verified | Clean |
+| 4.6 | `tests/users.test.js` | Integration | 47/47 passing | Written | Passed | limit=10, total=15 verified | Clean |
+| 4.7 | All backend tests | Verification | 47/47 passing | N/A | N/A | N/A | No require.cache manipulation |
+| 4.8 | `npm run test:e2e` | E2E | 5/5 passing | N/A | N/A | N/A | Full admin flow passes |
+
+### Test Summary (Phase 4 only)
+- **Total tests written**: 3 (1 admin-edit + 1 protectAdmin + 1 pagination)
+- **Total tests passing**: 47 (all backend suites)
+- **Layers used**: Integration (3), Refactor (3 files)
+- **Approval tests**: None
+- **Pure functions created**: 0
 
 ## Completed Tasks
 
+### Phase 1: Backend Foundation (PR #1)
 - [x] 1.1 RED: Write unit test for `AdminService.listUsers()` mocking Mongoose `User.find()`
 - [x] 1.2 GREEN: Create `src/models/index.js` re-exporting `{ User, Record, AccessLog, ModificationLog, Message }`
 - [x] 1.3 GREEN: Create `src/middleware/auth.middleware.js` with `isAuthenticated` and `isAdmin` functions
@@ -41,71 +82,82 @@
 - [x] 1.8 REFACTOR: Verify no `console.log`, no hardcoded secrets, proper error messages in all new files
 - [x] 1.9 VERIFY: Run `npm test -- --testPathPattern=services` — all AdminService unit tests pass
 
-## Files Changed
+### Phase 2: Backend Controller + Routes + Mount (PR #2)
+- [x] 2.1 RED: Write integration test for `GET /api/admin/users` returning 403 for non-admin using test `app`
+- [x] 2.2 GREEN: Create `src/controllers/admin.controller.js` with all 12 HTTP handlers delegating to `AdminService`
+- [x] 2.3 GREEN: Create `src/routes/admin.routes.js` mounting all `/api/admin/*` endpoints with middleware chain
+- [x] 2.4 GREEN: Modify `server.js` — add `app.use('/api/admin', require('./src/routes/admin.routes'))` after session middleware
+- [x] 2.5 REFACTOR: Verify mounting order (session → admin routes); confirm monolith routes remain untouched
+- [x] 2.6 VERIFY: Run `npm test` — existing tests pass, new `/api/admin/*` endpoints respond correctly
+
+### Phase 3: Frontend Admin Panel + Routing (PR #3)
+- [x] 3.1 RED: Write Vitest test for `AdminDashboard` redirecting non-admin to `/dashboard`
+- [x] 3.2 GREEN: Create `frontend/src/pages/admin/AdminDashboard.tsx` with nav tabs, role-check on mount, redirect logic
+- [x] 3.3 RED: Write Vitest test for `UserManager` rendering user table with username/role/status columns
+- [x] 3.4 GREEN: Create `frontend/src/pages/admin/UserManager.tsx` with CRUD table, create/edit modals, proper error display
+- [x] 3.5 GREEN: Create `frontend/src/pages/admin/LogViewer.tsx` with access/modification log views and pagination
+- [x] 3.6 GREEN: Create `frontend/src/pages/admin/RecordManager.tsx` with search, admin-edit/delete, error handling
+- [x] 3.7 GREEN: Modify `frontend/src/App.tsx` — add `<Route path="/admin" element={<AdminDashboard />} />` inside ProtectedRoute
+- [x] 3.8 REFACTOR: Fix all empty `catch { /* Silently ignore */ }` blocks in extracted admin components
+- [x] 3.9 VERIFY: Run `npm run test:frontend` — all admin component tests pass, no TypeScript errors
+
+### Phase 4: Test Refactor + Integration Tests (PR #4)
+- [x] 4.1 Refactor `tests/auth.test.js` — replace `delete require.cache[...]` with `const app = require('../server')`
+- [x] 4.2 Refactor `tests/users.test.js` — use test `app` instance pattern, add tests for `/api/admin/users` endpoints
+- [x] 4.3 Refactor `tests/records.test.js` — use test `app` instance pattern, add tests for `/api/admin/records/*` endpoints
+- [x] 4.4 Add integration test: admin edits record → verifies `ModificationLog` created with correct adminUsername
+- [x] 4.5 Add integration test: supervisor cannot delete main admin → verifies 403 from `protectAdminAccount`
+- [x] 4.6 Add integration test: pagination on `/api/admin/logs/access` returns correct limit + total count
+- [x] 4.7 VERIFY: Run `npm test` — all backend tests pass with `app` singleton pattern, no `require.cache` manipulation
+- [x] 4.8 VERIFY: Run `npm run test:e2e` — Playwright tests pass against full admin flow
+
+## Files Changed (Phase 4)
 
 | File | Action | Lines | What Was Done |
 |------|--------|-------|---------------|
-| `src/models/index.js` | Created | 11 | Centralized model exports for modular architecture |
-| `src/middleware/auth.middleware.js` | Created | 19 | `isAuthenticated` and `isAdmin` extracted from server.js |
-| `src/middleware/validation.middleware.js` | Created | 11 | `validate` wrapper for express-validator |
-| `src/middleware/admin-protection.middleware.js` | Created | 13 | `protectAdminAccount` extracted from server.js |
-| `src/services/admin.service.js` | Created | 277 | All 12 admin service functions per design.md interface |
-| `tests/admin.service.test.js` | Created | 323 | Unit tests for all AdminService functions with mocked models |
+| `tests/setup.js` | Created | 7 | Jest globalSetup: MongoMemoryServer + env vars before any test loads server.js |
+| `tests/teardown.js` | Created | 6 | Jest globalTeardown: stop MongoMemoryServer after all suites |
+| `jest.config.js` | Modified | +2/-0 | Register globalSetup and globalTeardown |
+| `tests/auth.test.js` | Modified | -10 | Removed `delete require.cache`, local MongoMemoryServer; uses singleton `app` |
+| `tests/users.test.js` | Modified | +46/-10 | Singleton pattern, added `/api/admin/users` protectAdmin test, added access-log pagination test |
+| `tests/records.test.js` | Modified | +38/-10 | Singleton pattern, added `/api/admin/records/:id/admin-edit` ModificationLog verification test |
 
-**Total new lines**: ~654 (production ~331, tests ~323)
+**Total changed lines**: 103 insertions, 20 deletions (83 net; well under 400-line target)
 
 ## Deviations from Design
 
-None — implementation matches design.md interfaces and behavior exactly. All function signatures, return shapes, and error messages align with the design contract.
+1. **Path correction**: tasks.md specified `require('../../server')` but the correct relative path from `tests/*.test.js` is `require('../server')`. The design.md pattern example also showed `../../server` which appears to assume a nested test directory. Used `../server` to match the actual file layout.
+
+2. **Jest global setup approach**: Rather than simply deleting `require.cache` lines and hoping env vars are set before server.js loads, introduced `tests/setup.js` + `tests/teardown.js` + `jest.config.js` changes. This is the standard Jest pattern for singleton app testing with MongoMemoryServer and ensures deterministic behavior across suites.
 
 ## Issues Found
 
-1. **Pre-existing test flakiness**: `tests/auth.test.js` occasionally times out on `beforeAll` due to MongoDB memory server startup delays. This is NOT caused by this change. The users and records tests pass consistently.
-2. **Mongoose query chain mocking complexity**: Unit tests required a custom `mockQuery()` helper to emulate Mongoose `.populate()`, `.select()`, `.sort()`, `.limit()`, `.skip()` chaining. This is a testing infrastructure concern, not a production issue.
-3. **Review budget**: Total additions (~654 lines) exceed the 400-line target. This phase includes both the service implementation (277 lines) and comprehensive unit tests (323 lines). The orchestrator explicitly scoped this work unit; consider whether tests could be split to a follow-up PR in future if budget is strict.
+1. **Pagination test interference**: The login request in the pagination test creates an additional `AccessLog` entry. The test was initially written expecting 15 total logs but received 16 because the login itself generates a log. Fixed by inserting 14 seed logs + 1 login log = 15 total.
+
+2. **Console logs in server.js**: Pre-existing `console.log` / `console.error` calls remain in `server.js` (lines 99, 115). These were present before this change and are out of scope per task instructions.
+
+3. **Connection reuse warning**: Jest emits `Force exiting Jest: Have you considered using --detectOpenHandles` because the MongoMemoryServer connection remains open across suites. This is expected with the singleton pattern and existed before this change.
 
 ## Verification Results
 
-- `npm test`: ✅ 33 tests passing (4 suites)
+- `npm test`: ✅ 47 tests passing (5 suites)
 - `node --check server.js`: ✅ No syntax errors
-- `grep console.log src/`: ✅ No console.log in new production files
-- Hardcoded secrets check: ✅ No hardcoded secrets
-- Error messages: ✅ All errors are meaningful and in Spanish per project convention
+- `npm run test:e2e`: ✅ 5 Playwright tests passing (admin flow verified)
+- `grep "delete require.cache" tests/*.test.js`: ✅ No remaining require.cache manipulation in refactored files
+- `grep "console.log" tests/*.test.js`: ✅ No console.log in test files
+- Tests clean up created data: ✅ Each suite calls `deleteMany` in beforeAll or test teardown
 
 ## Remaining Tasks
 
-### Phase 2: Backend Controller + Routes + Mount (PR #2)
-- [ ] 2.1 RED: Write integration test for `GET /api/admin/users` returning 403 for non-admin using test `app`
-- [ ] 2.2 GREEN: Create `src/controllers/admin.controller.js` with all 12 HTTP handlers delegating to `AdminService`
-- [ ] 2.3 GREEN: Create `src/routes/admin.routes.js` mounting all `/api/admin/*` endpoints with middleware chain
-- [ ] 2.4 GREEN: Modify `server.js` — add `app.use('/api/admin', require('./src/routes/admin.routes'))` after session middleware
-- [ ] 2.5 REFACTOR: Verify mounting order (session → admin routes); confirm monolith routes remain untouched
-- [ ] 2.6 VERIFY: Run `npm test` — existing tests pass, new `/api/admin/*` endpoints respond correctly
-
-### Phase 3: Frontend Admin Panel + Routing (PR #3)
-- [ ] 3.1 RED: Write Vitest test for `AdminDashboard` redirecting non-admin to `/dashboard`
-- [ ] 3.2 GREEN: Create `frontend/src/pages/admin/AdminDashboard.tsx`
-- [ ] 3.3 RED: Write Vitest test for `UserManager` rendering user table
-- [ ] 3.4 GREEN: Create `frontend/src/pages/admin/UserManager.tsx`
-- [ ] 3.5 GREEN: Create `frontend/src/pages/admin/LogViewer.tsx`
-- [ ] 3.6 GREEN: Create `frontend/src/pages/admin/RecordManager.tsx`
-- [ ] 3.7 GREEN: Modify `frontend/src/App.tsx` — add `/admin` route
-- [ ] 3.8 REFACTOR: Fix all empty catch blocks
-- [ ] 3.9 VERIFY: Run `npm run test:frontend`
-
-### Phase 4: Test Refactor + Integration Tests (PR #4)
-- [ ] 4.1 Refactor `tests/auth.test.js`
-- [ ] 4.2 Refactor `tests/users.test.js`
-- [ ] 4.3 Refactor `tests/records.test.js`
-- [ ] 4.4-4.8 Add integration tests and verify
+None. All 32 tasks across Phases 1–4 are complete.
 
 ## Workload / PR Boundary
 
 - **Mode**: feature-branch-chain
-- **Current work unit**: PR #1 — Backend middleware + service + models index
-- **Boundary**: Creates standalone backend foundation files; no routes mounted; no server.js changes; no frontend changes
-- **Estimated review budget impact**: ~654 total new lines (331 production + 323 tests). Exceeds 400-line target. The service logic and tests are tightly coupled; splitting tests to a separate PR would violate "keep tests with code" work-unit principle.
+- **Current work unit**: PR #4 — Test refactor + integration tests
+- **Boundary**: `tests/setup.js`, `tests/teardown.js`, `jest.config.js`, `tests/auth.test.js`, `tests/users.test.js`, `tests/records.test.js`
+- **Estimated review budget impact**: 83 net changed lines (well under 400-line target)
 
 ## Status
 
-9/9 Phase 1 tasks complete. Ready for verify.
+32/32 tasks complete across Phases 1, 2, 3, and 4. Ready for verify.
