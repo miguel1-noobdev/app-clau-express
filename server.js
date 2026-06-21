@@ -139,6 +139,19 @@ const isAdmin = async (req, res, next) => {
   }
 };
 
+// Middleware to protect the main admin account from modification by others
+const protectAdminAccount = async (req, res, next) => {
+  try {
+    const targetUser = await User.findById(req.params.id);
+    if (targetUser && targetUser.username === 'admin' && req.session.username !== 'admin') {
+      return res.status(403).json({ error: 'No se puede modificar la cuenta del administrador principal' });
+    }
+    next();
+  } catch (error) {
+    res.status(500).json({ error: 'Error al verificar protección de cuenta' });
+  }
+};
+
 // ===== AUTH ROUTES =====
 
 // Login
@@ -502,6 +515,7 @@ app.post('/api/users',
 app.put('/api/users/:id',
   isAuthenticated,
   isAdmin,
+  protectAdminAccount,
   param('id').isMongoId().withMessage('ID de usuario inválido'),
   body('username')
     .optional()
@@ -546,10 +560,15 @@ app.put('/api/users/:id',
 app.delete('/api/users/:id',
   isAuthenticated,
   isAdmin,
+  protectAdminAccount,
   param('id').isMongoId().withMessage('ID de usuario inválido'),
   validate,
   async (req, res) => {
   try {
+    const targetUser = await User.findById(req.params.id);
+    if (targetUser && targetUser.username === 'admin') {
+      return res.status(403).json({ error: 'No se puede eliminar la cuenta del administrador principal' });
+    }
     await User.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: 'Usuario eliminado correctamente' });
   } catch (error) {
@@ -558,7 +577,7 @@ app.delete('/api/users/:id',
 });
 
 // Toggle user status (block/unblock)
-app.put('/api/users/:id/toggle-status', isAuthenticated, isAdmin, async (req, res) => {
+app.put('/api/users/:id/toggle-status', isAuthenticated, isAdmin, protectAdminAccount, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
@@ -585,6 +604,7 @@ app.put('/api/users/:id/toggle-status', isAuthenticated, isAdmin, async (req, re
 app.put('/api/users/:id/role',
   isAuthenticated,
   isAdmin,
+  protectAdminAccount,
   param('id').isMongoId().withMessage('ID de usuario inválido'),
   body('role')
     .notEmpty().withMessage('El rol es requerido')
@@ -606,6 +626,11 @@ app.put('/api/users/:id/role',
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
+    // Prevent changing the admin's own role even by admin
+    if (user.username === 'admin') {
+      return res.status(403).json({ error: 'No se puede cambiar el rol del administrador principal' });
+    }
+
     user.role = role;
     await user.save();
 
@@ -623,7 +648,7 @@ app.put('/api/users/:id/role',
 });
 
 // Reset user password
-app.put('/api/users/:id/reset-password', isAuthenticated, isAdmin, async (req, res) => {
+app.put('/api/users/:id/reset-password', isAuthenticated, isAdmin, protectAdminAccount, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {

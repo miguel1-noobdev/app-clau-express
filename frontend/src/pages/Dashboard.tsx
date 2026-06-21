@@ -504,16 +504,20 @@ const Dashboard = ({ theme, toggleTheme }: DashboardProps) => {
                         </span>
                       </td>
                       <td>
-                        <div className="action-buttons">
-                          <button onClick={() => openEditModal(u)} className="action-btn" title="Editar">✏️</button>
-                          <button onClick={() => handleToggleStatus(u._id, u.username, u.isActive)} className="action-btn" title={u.isActive ? 'Bloquear' : 'Activar'}>
-                            {u.isActive ? '🚫' : '✅'}
-                          </button>
-                          <button onClick={() => handleResetPassword(u._id)} className="action-btn" title="Reset password">🔑</button>
-                          {user?.role === 'admin' && (
-                            <button onClick={() => handleDeleteUser(u._id, u.username)} className="action-btn action-delete" title="Eliminar">🗑️</button>
-                          )}
-                        </div>
+                        {u.username === 'admin' ? (
+                          <span className="text-muted" style={{ fontSize: '0.8rem' }}>Cuenta protegida</span>
+                        ) : (
+                          <div className="action-buttons">
+                            <button onClick={() => openEditModal(u)} className="action-btn" title="Editar">✏️</button>
+                            <button onClick={() => handleToggleStatus(u._id, u.username, u.isActive)} className="action-btn" title={u.isActive ? 'Bloquear' : 'Activar'}>
+                              {u.isActive ? '🚫' : '✅'}
+                            </button>
+                            <button onClick={() => handleResetPassword(u._id)} className="action-btn" title="Reset password">🔑</button>
+                            {user?.role === 'admin' && (
+                              <button onClick={() => handleDeleteUser(u._id, u.username)} className="action-btn action-delete" title="Eliminar">🗑️</button>
+                            )}
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))}
