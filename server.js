@@ -625,8 +625,9 @@ app.put('/api/users/:id/reset-password', isAuthenticated, isAdmin, async (req, r
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    // Use simple generic temporary password
-    const tempPassword = 'Pass1234!';
+    // Generate secure random temporary password
+    const { randomBytes } = require('crypto');
+    const tempPassword = randomBytes(12).toString('base64').slice(0, 16);
 
     user.password = tempPassword;
     user.mustChangePassword = true;
