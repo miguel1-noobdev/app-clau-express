@@ -98,13 +98,18 @@ mongoose.connect(MONGODB_URI)
     // Create admin user if it doesn't exist
     const adminExists = await User.findOne({ username: 'admin' });
     if (!adminExists) {
+      const adminPassword = process.env.ADMIN_PASSWORD;
+      if (!adminPassword) {
+        console.error('FATAL: ADMIN_PASSWORD environment variable is required to bootstrap the admin user');
+        process.exit(1);
+      }
       const admin = new User({
         username: 'admin',
-        password: 'root',
+        password: adminPassword,
         role: 'admin'
       });
       await admin.save();
-      console.log('✅ Usuario admin creado: admin/root');
+      console.log('✅ Usuario admin creado: admin');
     }
   })
   .catch(err => console.error(' Error de conexión a MongoDB:', err));
