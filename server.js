@@ -543,7 +543,12 @@ app.put('/api/users/:id',
 });
 
 // Delete user
-app.delete('/api/users/:id', isAuthenticated, isAdmin, async (req, res) => {
+app.delete('/api/users/:id',
+  isAuthenticated,
+  isAdmin,
+  param('id').isMongoId().withMessage('ID de usuario inválido'),
+  validate,
+  async (req, res) => {
   try {
     await User.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: 'Usuario eliminado correctamente' });
@@ -645,7 +650,12 @@ app.put('/api/users/:id/reset-password', isAuthenticated, isAdmin, async (req, r
 });
 
 // Get all records for a specific user (admin only)
-app.get('/api/users/:id/records', isAuthenticated, isAdmin, async (req, res) => {
+app.get('/api/users/:id/records',
+  isAuthenticated,
+  isAdmin,
+  param('id').isMongoId().withMessage('ID de usuario inválido'),
+  validate,
+  async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
@@ -668,14 +678,21 @@ app.get('/api/users/:id/records', isAuthenticated, isAdmin, async (req, res) => 
 // Get access logs
 app.get('/api/logs/access', isAuthenticated, isAdmin, async (req, res) => {
   try {
-    const { limit = 50, offset = 0, username } = req.query;
+    const limit = Math.min(parseInt(req.query.limit) || 50, 200);
+    const offset = parseInt(req.query.offset) || 0;
 
-    const query = username ? { username } : {};
+    const query = {};
+    if (req.query.username) {
+      query.username = String(req.query.username);
+    }
+    if (req.query.action) {
+      query.action = String(req.query.action);
+    }
 
     const logs = await AccessLog.find(query)
       .sort({ timestamp: -1 })
-      .limit(parseInt(limit))
-      .skip(parseInt(offset));
+      .limit(limit)
+      .skip(offset);
 
     const total = await AccessLog.countDocuments(query);
 
@@ -693,14 +710,21 @@ app.get('/api/logs/access', isAuthenticated, isAdmin, async (req, res) => {
 // Get modification logs
 app.get('/api/logs/modifications', isAuthenticated, isAdmin, async (req, res) => {
   try {
-    const { limit = 50, offset = 0, adminUsername } = req.query;
+    const limit = Math.min(parseInt(req.query.limit) || 50, 200);
+    const offset = parseInt(req.query.offset) || 0;
 
-    const query = adminUsername ? { adminUsername } : {};
+    const query = {};
+    if (req.query.adminUsername) {
+      query.adminUsername = String(req.query.adminUsername);
+    }
+    if (req.query.action) {
+      query.action = String(req.query.action);
+    }
 
     const logs = await ModificationLog.find(query)
       .sort({ timestamp: -1 })
-      .limit(parseInt(limit))
-      .skip(parseInt(offset));
+      .limit(limit)
+      .skip(offset);
 
     const total = await ModificationLog.countDocuments(query);
 
@@ -1024,7 +1048,11 @@ app.put('/api/records/:id',
 });
 
 // DELETE record
-app.delete('/api/records/:id', isAuthenticated, async (req, res) => {
+app.delete('/api/records/:id',
+  isAuthenticated,
+  param('id').isMongoId().withMessage('ID de registro inválido'),
+  validate,
+  async (req, res) => {
   try {
     const record = await Record.findOne({
       _id: req.params.id,
@@ -1122,7 +1150,12 @@ app.put('/api/records/:id/admin-edit',
 });
 
 // Admin: Delete any user's record
-app.delete('/api/records/:id/admin-delete', isAuthenticated, isAdmin, async (req, res) => {
+app.delete('/api/records/:id/admin-delete',
+  isAuthenticated,
+  isAdmin,
+  param('id').isMongoId().withMessage('ID de registro inválido'),
+  validate,
+  async (req, res) => {
   try {
     const record = await Record.findById(req.params.id).populate('userId', 'username');
 
