@@ -91,7 +91,7 @@ app.use(session({
 
 // Session bootstrap will be defined once with a proper MONGODB_URI variable
 
-mongoose.connect(MONGODB_URI)
+const dbConnectPromise = mongoose.connect(MONGODB_URI)
   .then(async () => {
     console.log(' Conectado a MongoDB');
 
@@ -111,8 +111,7 @@ mongoose.connect(MONGODB_URI)
       await admin.save();
       console.log('✅ Usuario admin creado: admin');
     }
-  })
-  .catch(err => console.error(' Error de conexión a MongoDB:', err));
+  });
 
 // Record model moved to src/models/Record.js
 
@@ -230,7 +229,6 @@ app.post('/api/auth/login',
       }
     });
   } catch (error) {
-    console.error('Login error:', error);
     res.status(500).json({ error: 'Error al iniciar sesión' });
   }
 });
@@ -257,7 +255,6 @@ app.post('/api/auth/logout', async (req, res) => {
       res.json({ success: true });
     });
   } catch (error) {
-    console.error('Logout error:', error);
     res.status(500).json({ error: 'Error al cerrar sesión' });
   }
 });
@@ -341,7 +338,6 @@ app.post('/api/auth/change-password',
       }
     });
   } catch (error) {
-    console.error('Change password error:', error);
     res.status(500).json({ error: 'Error al cambiar contraseña' });
   }
 });
@@ -386,7 +382,6 @@ app.put('/api/profile',
       }
     });
   } catch (error) {
-    console.error('Update profile error:', error);
     res.status(500).json({ error: 'Error al actualizar perfil' });
   }
 });
@@ -426,7 +421,6 @@ app.post('/api/change-password', isAuthenticated, async (req, res) => {
       message: 'Contraseña actualizada correctamente'
     });
   } catch (error) {
-    console.error('Change password error:', error);
     res.status(500).json({ error: 'Error al cambiar contraseña' });
   }
 });
@@ -506,7 +500,6 @@ app.post('/api/users',
       }
     });
   } catch (error) {
-    console.error('Create user error:', error);
     res.status(400).json({ error: 'Error al crear usuario' });
   }
 });
@@ -595,7 +588,6 @@ app.put('/api/users/:id/toggle-status', isAuthenticated, isAdmin, protectAdminAc
       }
     });
   } catch (error) {
-    console.error('Toggle status error:', error);
     res.status(500).json({ error: 'Error al cambiar estado del usuario' });
   }
 });
@@ -642,7 +634,6 @@ app.put('/api/users/:id/role',
       }
     });
   } catch (error) {
-    console.error('Change role error:', error);
     res.status(500).json({ error: 'Error al cambiar rol del usuario' });
   }
 });
@@ -669,7 +660,6 @@ app.put('/api/users/:id/reset-password', isAuthenticated, isAdmin, protectAdminA
       message: 'Contraseña reseteada. El usuario debe cambiarla en el próximo login.'
     });
   } catch (error) {
-    console.error('Reset password error:', error);
     res.status(500).json({ error: 'Error al resetear contraseña' });
   }
 });
@@ -695,7 +685,6 @@ app.get('/api/users/:id/records',
       records: records
     });
   } catch (error) {
-    console.error('Get user records error:', error);
     res.status(500).json({ error: 'Error al obtener registros del usuario' });
   }
 });
@@ -727,7 +716,6 @@ app.get('/api/logs/access', isAuthenticated, isAdmin, async (req, res) => {
       total: total
     });
   } catch (error) {
-    console.error('Get access logs error:', error);
     res.status(500).json({ error: 'Error al obtener logs de acceso' });
   }
 });
@@ -759,7 +747,6 @@ app.get('/api/logs/modifications', isAuthenticated, isAdmin, async (req, res) =>
       total: total
     });
   } catch (error) {
-    console.error('Get modification logs error:', error);
     res.status(500).json({ error: 'Error al obtener logs de modificaciones' });
   }
 });
@@ -811,7 +798,6 @@ app.get('/api/messages/conversations', isAuthenticated, async (req, res) => {
       conversations: conversations
     });
   } catch (error) {
-    console.error('Get conversations error:', error);
     res.status(500).json({ error: 'Error al obtener conversaciones' });
   }
 });
@@ -835,7 +821,6 @@ app.get('/api/messages/:username', isAuthenticated, async (req, res) => {
       messages: messages
     });
   } catch (error) {
-    console.error('Get messages error:', error);
     res.status(500).json({ error: 'Error al obtener mensajes' });
   }
 });
@@ -876,7 +861,6 @@ app.post('/api/messages',
       message: newMessage
     });
   } catch (error) {
-    console.error('Send message error:', error);
     res.status(500).json({ error: 'Error al enviar mensaje' });
   }
 });
@@ -904,7 +888,6 @@ app.put('/api/messages/:username/mark-read', isAuthenticated, async (req, res) =
       message: 'Mensajes marcados como leídos'
     });
   } catch (error) {
-    console.error('Mark as read error:', error);
     res.status(500).json({ error: 'Error al marcar mensajes como leídos' });
   }
 });
@@ -924,7 +907,6 @@ app.get('/api/messages/unread/count', isAuthenticated, async (req, res) => {
       count: count
     });
   } catch (error) {
-    console.error('Get unread count error:', error);
     res.status(500).json({ error: 'Error al obtener contador de mensajes no leídos' });
   }
 });
@@ -947,7 +929,6 @@ app.get('/api/messages/admin', isAuthenticated, async (req, res) => {
       messages: messages
     });
   } catch (error) {
-    console.error('Get admin messages error:', error);
     res.status(500).json({ error: 'Error al obtener mensajes con admin' });
   }
 });
@@ -974,7 +955,6 @@ app.put('/api/messages/admin/mark-read', isAuthenticated, async (req, res) => {
       message: 'Mensajes marcados como leídos'
     });
   } catch (error) {
-    console.error('Mark admin messages as read error:', error);
     res.status(500).json({ error: 'Error al marcar mensajes como leídos' });
   }
 });
@@ -1186,7 +1166,6 @@ app.put('/api/records/:id/admin-edit',
       logId: modLog._id
     });
   } catch (error) {
-    console.error('Admin edit record error:', error);
     res.status(500).json({ error: 'Error al editar registro' });
   }
 });
@@ -1236,7 +1215,6 @@ app.delete('/api/records/:id/admin-delete',
       logId: modLog._id
     });
   } catch (error) {
-    console.error('Admin delete record error:', error);
     res.status(500).json({ error: 'Error al eliminar registro' });
   }
 });
@@ -1250,23 +1228,28 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Start server
-const host = process.env.NODE_ENV === 'production' ? '127.0.0.1' : '0.0.0.0';
-app.listen(PORT, host, () => {
-  const os = require('os');
-  const networkInterfaces = os.networkInterfaces();
-  let localIp = 'localhost';
+if (require.main === module) {
+  const host = process.env.NODE_ENV === 'production' ? '127.0.0.1' : '0.0.0.0';
+  app.listen(PORT, host, () => {
+    const os = require('os');
+    const networkInterfaces = os.networkInterfaces();
+    let localIp = 'localhost';
 
-  // Find primary IPv4 interface
-  for (const name of Object.keys(networkInterfaces)) {
-    for (const net of networkInterfaces[name]) {
-      if (net.family === 'IPv4' && !net.internal) {
-        localIp = net.address;
-        break;
+    // Find primary IPv4 interface
+    for (const name of Object.keys(networkInterfaces)) {
+      for (const net of networkInterfaces[name]) {
+        if (net.family === 'IPv4' && !net.internal) {
+          localIp = net.address;
+          break;
+        }
       }
     }
-  }
 
-  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-  console.log(`📱 Acceso desde red local: http://${localIp}:${PORT}`);
-});
+    console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`📱 Acceso desde red local: http://${localIp}:${PORT}`);
+  });
+}
+
+app.dbConnectPromise = dbConnectPromise;
+module.exports = app;
 
