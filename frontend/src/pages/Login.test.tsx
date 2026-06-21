@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -26,28 +25,28 @@ describe('Login', () => {
       </MemoryRouter>
     );
 
-    // Verificar título (el span interrumpe el texto, usamos querySelector + toHaveTextContent)
-    const title = document.querySelector('h2');
-    expect(title).toHaveTextContent(/Autenticación BIOMÉTRICA/i);
+    // Verificar título principal
+    expect(screen.getByRole('heading', { name: /ClaudApp/i })).toBeInTheDocument();
+    expect(screen.getByText(/Tu registro de horas/i)).toBeInTheDocument();
 
-    // Verificar labels
-    expect(screen.getByLabelText(/Protocolo de Usuario/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Cifrado de Seguridad/i)).toBeInTheDocument();
+    // Verificar labels con emojis
+    expect(screen.getByLabelText(/Usuario/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Contraseña/i)).toBeInTheDocument();
 
-    // Verificar placeholders
-    expect(screen.getByPlaceholderText(/Digite ID de acceso/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/••••••••/)).toBeInTheDocument();
+    // Verificar placeholders amigables
+    expect(screen.getByPlaceholderText(/Tu nombre de usuario/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/Tu contraseña/i)).toBeInTheDocument();
 
     // Verificar botón submit
-    expect(screen.getByRole('button', { name: /Activar Sistemas/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Entrar/i })).toBeInTheDocument();
 
     // Verificar footer
-    expect(screen.getByText(/STARK INDUSTRIES SYSTEM/i)).toBeInTheDocument();
+    expect(screen.getByText(/Problemas para entrar/i)).toBeInTheDocument();
   });
 
   it('calls API on submit with correct credentials', async () => {
     const mockedPost = vi.mocked(api.post);
-    mockedPost.mockResolvedValueOnce({ success: true, token: 'test-token' });
+    mockedPost.mockResolvedValueOnce({ success: true });
 
     render(
       <MemoryRouter>
@@ -55,9 +54,9 @@ describe('Login', () => {
       </MemoryRouter>
     );
 
-    const usernameInput = screen.getByPlaceholderText(/Digite ID de acceso/i);
-    const passwordInput = screen.getByPlaceholderText(/••••••••/);
-    const submitButton = screen.getByRole('button', { name: /Activar Sistemas/i });
+    const usernameInput = screen.getByPlaceholderText(/Tu nombre de usuario/i);
+    const passwordInput = screen.getByPlaceholderText(/Tu contraseña/i);
+    const submitButton = screen.getByRole('button', { name: /Entrar/i });
 
     fireEvent.change(usernameInput, { target: { value: 'tony' } });
     fireEvent.change(passwordInput, { target: { value: 'stark123' } });
@@ -81,16 +80,16 @@ describe('Login', () => {
       </MemoryRouter>
     );
 
-    const usernameInput = screen.getByPlaceholderText(/Digite ID de acceso/i);
-    const passwordInput = screen.getByPlaceholderText(/••••••••/);
-    const submitButton = screen.getByRole('button', { name: /Activar Sistemas/i });
+    const usernameInput = screen.getByPlaceholderText(/Tu nombre de usuario/i);
+    const passwordInput = screen.getByPlaceholderText(/Tu contraseña/i);
+    const submitButton = screen.getByRole('button', { name: /Entrar/i });
 
     fireEvent.change(usernameInput, { target: { value: 'tony' } });
     fireEvent.change(passwordInput, { target: { value: 'wrongpass' } });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent(/ERROR RESTRINGIDO:/i);
+      expect(screen.getByRole('alert')).toHaveTextContent(/Usuario o contraseña incorrectos/i);
     });
   });
 
@@ -105,9 +104,9 @@ describe('Login', () => {
       </MemoryRouter>
     );
 
-    const usernameInput = screen.getByPlaceholderText(/Digite ID de acceso/i);
-    const passwordInput = screen.getByPlaceholderText(/••••••••/);
-    const submitButton = screen.getByRole('button', { name: /Activar Sistemas/i });
+    const usernameInput = screen.getByPlaceholderText(/Tu nombre de usuario/i);
+    const passwordInput = screen.getByPlaceholderText(/Tu contraseña/i);
+    const submitButton = screen.getByRole('button', { name: /Entrar/i });
 
     fireEvent.change(usernameInput, { target: { value: 'tony' } });
     fireEvent.change(passwordInput, { target: { value: 'stark123' } });
@@ -117,8 +116,7 @@ describe('Login', () => {
       expect(screen.getByRole('button')).toBeDisabled();
     });
 
-    // The button should show a spinner (span element) instead of text
-    expect(screen.getByRole('button').querySelector('span')).toBeInTheDocument();
-    expect(screen.queryByText(/Activar Sistemas/i)).not.toBeInTheDocument();
+    // The button should show loading text
+    expect(screen.getByText(/Entrando/i)).toBeInTheDocument();
   });
 });

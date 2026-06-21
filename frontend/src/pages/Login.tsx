@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api.service';
 
-const Login: React.FC = () => {
+const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -16,15 +16,12 @@ const Login: React.FC = () => {
     try {
       const resp = await api.post('/api/auth/login', { username, password });
       if (resp && resp.success) {
-        if (resp.token) {
-          localStorage.setItem('authToken', resp.token);
-        }
         navigate('/dashboard');
       } else {
-        setError('Credenciales inválidas');
+        setError('Usuario o contraseña incorrectos');
       }
-    } catch (err) {
-      setError('Error al iniciar sesión');
+    } catch {
+      setError('Usuario o contraseña incorrectos');
     } finally {
       setLoading(false);
     }
@@ -32,74 +29,62 @@ const Login: React.FC = () => {
 
   return (
     <div className="login-page fade-in">
-      <div className="stark-header" style={{ textAlign: 'center', marginBottom: '2rem' }}>
-        <h1 style={{ margin: 0, fontSize: '2.5rem' }}>
-          CLAUDIA<span className="text-cyan">_</span>EXE
-        </h1>
-        <p className="text-gold" style={{ letterSpacing: '0.2em', fontSize: '0.7rem', fontWeight: 600 }}>
-          STARK INDUSTRIES SYSTEM
-        </p>
+      {/* Logo y título */}
+      <div className="login-header">
+        <div className="login-logo">⏱️</div>
+        <h1 className="login-title">ClaudApp</h1>
+        <p className="login-subtitle">Tu registro de horas, fácil y rápido</p>
       </div>
 
-      <div className="glass-card">
-        <h2 style={{ textAlign: 'center', marginBottom: '1.5rem' }}>Autenticación <span className="text-cyan">BIOMÉTRICA</span></h2>
-        
+      {/* Formulario */}
+      <div className="card login-card">
         <form onSubmit={handleSubmit}>
-          <div className="stark-input-group">
-            <label htmlFor="username">Protocolo de Usuario</label>
+          <div className="input-group">
+            <label htmlFor="username">👤 Usuario</label>
             <input
               id="username"
-              className="stark-input"
+              className="input"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Digite ID de acceso"
+              placeholder="Tu nombre de usuario"
               autoComplete="username"
+              autoFocus
             />
           </div>
 
-          <div className="stark-input-group">
-            <label htmlFor="password">Cifrado de Seguridad</label>
+          <div className="input-group">
+            <label htmlFor="password">🔒 Contraseña</label>
             <input
               id="password"
-              className="stark-input"
+              className="input"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="Tu contraseña"
               autoComplete="current-password"
             />
           </div>
 
           <button 
             type="submit" 
-            className="btn-primary mt-4" 
+            className="btn btn-primary mt-2" 
             disabled={loading}
           >
-            {loading ? (
-              <span className="arc-reactor-glow" style={{ borderRadius: '50%', width: 16, height: 16, border: '2px solid white' }}></span>
-            ) : 'Activar Sistemas'}
+            {loading ? '⏳ Entrando...' : '👉 Entrar'}
           </button>
         </form>
 
         {error && (
-          <div role="alert" style={{ 
-            color: 'var(--stark-red)', 
-            marginTop: '1.5rem', 
-            textAlign: 'center',
-            fontSize: '0.9rem',
-            background: 'rgba(255, 62, 62, 0.1)',
-            padding: '0.75rem',
-            borderRadius: 'var(--radius-sm)',
-            border: '1px solid var(--stark-red)'
-          }}>
-            ERROR RESTRINGIDO: {error}
+          <div className="error-message mt-2" role="alert">
+            ⚠️ {error}
           </div>
         )}
       </div>
 
-      <div className="stark-footer" style={{ marginTop: '2rem', textAlign: 'center', opacity: 0.6, fontSize: '0.8rem' }}>
-        <p>© 2026 STARK INDUSTRIES. Todos los sistemas nominales.</p>
-      </div>
+      {/* Footer */}
+      <p className="login-footer">
+        ¿Problemas para entrar? Contactá a tu administrador
+      </p>
     </div>
   );
 };

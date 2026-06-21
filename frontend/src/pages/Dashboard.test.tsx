@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -29,7 +28,7 @@ describe('Dashboard', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText(/JARVIS: CARGANDO SISTEMAS/i)).toBeInTheDocument();
+    expect(screen.getByText(/Cargando/i)).toBeInTheDocument();
   });
 
   it('renders tabs after loading data', async () => {
@@ -50,7 +49,6 @@ describe('Dashboard', () => {
       expect(screen.getByRole('button', { name: /Resumen/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /Registrar/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /Reportes/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /JARVIS AI/i })).toBeInTheDocument();
     });
   });
 
