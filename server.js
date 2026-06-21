@@ -16,8 +16,14 @@ const Record = require('./src/models/Record');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
+// Trust proxy in production for secure cookies behind reverse proxy
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
+// CORS — explicit origins only
+const allowedOrigins = ['https://clau-app.duckdns.org', 'http://localhost:3001', 'http://127.0.0.1:3001'];
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
 app.use(helmet()); // Security headers
 
@@ -59,13 +65,22 @@ const sessionStore = MongoStore.create({
   touchAfter: 24 * 3600 
 });
 
+const SESSION_SECRET = process.env.SESSION_SECRET;
+if (!SESSION_SECRET) {
+  console.error('FATAL: SESSION_SECRET environment variable is required');
+  process.exit(1);
+}
+
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'claudia-space-secret-key',
+  secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   store: sessionStore,
   cookie: {
-    maxAge: 1000 * 60 * 60 * 24
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    sameSite: 'strict',
+    maxAge: 24 * 60 * 60 * 1000
   }
 }));
 
