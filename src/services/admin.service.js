@@ -1,7 +1,7 @@
 const { User, Record, AccessLog, ModificationLog } = require('../models');
 const { randomBytes } = require('crypto');
 
-async function listUsers() {
+async function listUsers(sessionUserId) {
   try {
     const users = await User.find().select('-password').sort({ createdAt: -1 });
     return { success: true, users };
@@ -54,7 +54,7 @@ async function createUser(userData, sessionUsername) {
   }
 }
 
-async function updateUser(userId, updateData, _sessionUsername) {
+async function updateUser(userId, updateData, sessionUsername) {
   try {
     const { username, password, role } = updateData;
     const data = { username, role };

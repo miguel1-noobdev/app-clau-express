@@ -84,6 +84,9 @@ app.use(session({
   }
 }));
 
+// Modular admin routes — mounted after session so req.session is available
+app.use('/api/admin', require('./src/routes/admin.routes'));
+
 // Monolith backend (modular scaffolding moved to docs/backend-scaffolding/)
 
 // MongoDB Connection
