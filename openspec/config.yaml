@@ -1,0 +1,60 @@
+schema: spec-driven
+
+context: |
+  Tech stack: Node.js + Express + MongoDB (backend), React 18 + TypeScript + Vite (frontend)
+  Architecture: Monorepo-style with separate backend (server.js, src/) and frontend (frontend/)
+  Backend: Express 4.x, Mongoose 8.x, express-session, bcryptjs, express-validator, helmet, cors, rate-limiting
+  Frontend: React 18, react-router-dom 6.x, Vite 8.x, TypeScript 5.x
+  Testing: Jest + supertest + mongodb-memory-server (backend integration), Vitest + Testing Library + happy-dom (frontend unit), Playwright (E2E)
+  Linter: None detected at project level (AGENTS.md serves as code review rules)
+  Type checker: TypeScript 5.x (frontend only)
+  Formatter: None detected
+  CI/CD: None detected (no .github/workflows)
+  Container: Docker + docker-compose.yml
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Consider both backend and frontend impact in monorepo structure
+  specs:
+    - Use Given/When/Then for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Include sequence diagrams for complex flows
+    - Document architecture decisions with rationale
+  tasks:
+    - Group by phase, use hierarchical numbering
+    - Keep tasks completable in one session
+    - Separate backend and frontend tasks clearly
+  apply:
+    - Follow existing code patterns
+    tdd: true
+    test_command: "cd backend: npm test | cd frontend: npm test"
+  verify:
+    test_command: "npm test (root) && cd frontend && npm test"
+    build_command: "cd frontend && npm run build"
+    coverage_threshold: 0
+  archive:
+    - Warn before merging destructive deltas
+
+testing:
+  backend:
+    runner: jest
+    config: jest.config.js
+    test_dir: tests/
+    framework: supertest + mongodb-memory-server
+    command: npm test
+    type: integration
+  frontend:
+    runner: vitest
+    config: frontend/vitest.config.ts
+    test_dir: frontend/src/
+    framework: "@testing-library/react + happy-dom"
+    command: cd frontend && npm test
+    type: unit
+  e2e:
+    runner: playwright
+    config: frontend/e2e/playwright.config.ts
+    test_dir: frontend/e2e/tests/
+    command: npx playwright test
+    type: e2e
