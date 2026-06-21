@@ -68,11 +68,11 @@ Branch: `feature/admin-panel-pr3-frontend` → base: `feature/admin-panel-pr2-co
 
 Branch: `feature/admin-panel-pr4-tests` → base: `feature/admin-panel-pr3-frontend`
 
-- [ ] 4.1 Refactor `tests/auth.test.js` — replace `delete require.cache[...]` with `const app = require('../../server')`
-- [ ] 4.2 Refactor `tests/users.test.js` — use test `app` instance pattern, add tests for `/api/admin/users` endpoints
-- [ ] 4.3 Refactor `tests/records.test.js` — use test `app` instance pattern, add tests for `/api/admin/records/*` endpoints
-- [ ] 4.4 Add integration test: admin edits record → verifies `ModificationLog` created with correct adminUsername
-- [ ] 4.5 Add integration test: supervisor cannot delete main admin → verifies 403 from `protectAdminAccount`
-- [ ] 4.6 Add integration test: pagination on `/api/admin/logs/access` returns correct limit + total count
-- [ ] 4.7 VERIFY: Run `npm test` — all backend tests pass with `app` singleton pattern, no `require.cache` manipulation
-- [ ] 4.8 VERIFY: Run `npm run test:e2e` — Playwright tests pass against full admin flow
+- [x] 4.1 Refactor `tests/auth.test.js` — replace `delete require.cache[...]` with `const app = require('../../server')`
+- [x] 4.2 Refactor `tests/users.test.js` — use test `app` instance pattern, add tests for `/api/admin/users` endpoints
+- [x] 4.3 Refactor `tests/records.test.js` — use test `app` instance pattern, add tests for `/api/admin/records/*` endpoints
+- [x] 4.4 Add integration test: admin edits record → verifies `ModificationLog` created with correct adminUsername
+- [x] 4.5 Add integration test: supervisor cannot delete main admin → verifies 403 from `protectAdminAccount`
+- [x] 4.6 Add integration test: pagination on `/api/admin/logs/access` returns correct limit + total count
+- [x] 4.7 VERIFY: Run `npm test` — all backend tests pass with `app` singleton pattern, no `require.cache` manipulation
+- [x] 4.8 VERIFY: Run `npm run test:e2e` — Playwright tests pass against full admin flow
