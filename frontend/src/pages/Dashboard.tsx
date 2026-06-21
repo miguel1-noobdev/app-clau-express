@@ -78,8 +78,8 @@ const Dashboard = ({ theme, toggleTheme }: DashboardProps) => {
           setLogs(Array.isArray(logsData.logs) ? logsData.logs.slice(0, 20) : []);
         }
       }
-    } catch (err) {
-      console.error('Error fetching data:', err);
+    } catch {
+      // Silently ignore fetch errors; UI loading state handles visibility
     } finally {
       setLoading(false);
     }
@@ -93,8 +93,8 @@ const Dashboard = ({ theme, toggleTheme }: DashboardProps) => {
     try {
       const usersData = await api.get('/api/users');
       setUsers(usersData);
-    } catch (err) {
-      console.error('Error recargando usuarios:', err);
+    } catch {
+      // Silently ignore reload errors
     }
   }, []);
 
