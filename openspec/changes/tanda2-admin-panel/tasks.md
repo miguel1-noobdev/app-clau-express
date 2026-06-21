@@ -54,25 +54,25 @@ Branch: `feature/admin-panel-pr2-controller-routes` → base: `feature/admin-pan
 
 Branch: `feature/admin-panel-pr3-frontend` → base: `feature/admin-panel-pr2-controller-routes`
 
-- [ ] 3.1 RED: Write Vitest test for `AdminDashboard` redirecting non-admin to `/dashboard`
-- [ ] 3.2 GREEN: Create `frontend/src/pages/admin/AdminDashboard.tsx` with nav tabs, role-check on mount, redirect logic
-- [ ] 3.3 RED: Write Vitest test for `UserManager` rendering user table with username/role/status columns
-- [ ] 3.4 GREEN: Create `frontend/src/pages/admin/UserManager.tsx` with CRUD table, create/edit modals, proper error display
-- [ ] 3.5 GREEN: Create `frontend/src/pages/admin/LogViewer.tsx` with access/modification log views and pagination
-- [ ] 3.6 GREEN: Create `frontend/src/pages/admin/RecordManager.tsx` with search, admin-edit/delete, error handling
-- [ ] 3.7 GREEN: Modify `frontend/src/App.tsx` — add `<Route path="/admin" element={<AdminDashboard />} />` inside ProtectedRoute
-- [ ] 3.8 REFACTOR: Fix all empty `catch { /* Silently ignore */ }` blocks in extracted admin components
-- [ ] 3.9 VERIFY: Run `npm run test:frontend` — all admin component tests pass, no TypeScript errors
+- [x] 3.1 RED: Write Vitest test for `AdminDashboard` redirecting non-admin to `/dashboard`
+- [x] 3.2 GREEN: Create `frontend/src/pages/admin/AdminDashboard.tsx` with nav tabs, role-check on mount, redirect logic
+- [x] 3.3 RED: Write Vitest test for `UserManager` rendering user table with username/role/status columns
+- [x] 3.4 GREEN: Create `frontend/src/pages/admin/UserManager.tsx` with CRUD table, create/edit modals, proper error display
+- [x] 3.5 GREEN: Create `frontend/src/pages/admin/LogViewer.tsx` with access/modification log views and pagination
+- [x] 3.6 GREEN: Create `frontend/src/pages/admin/RecordManager.tsx` with search, admin-edit/delete, error handling
+- [x] 3.7 GREEN: Modify `frontend/src/App.tsx` — add `<Route path="/admin" element={<AdminDashboard />} />` inside ProtectedRoute
+- [x] 3.8 REFACTOR: Fix all empty `catch { /* Silently ignore */ }` blocks in extracted admin components
+- [x] 3.9 VERIFY: Run `npm run test:frontend` — all admin component tests pass, no TypeScript errors
 
 ## Phase 4: Test Refactor + Integration Tests (PR #4)
 
 Branch: `feature/admin-panel-pr4-tests` → base: `feature/admin-panel-pr3-frontend`
 
-- [ ] 4.1 Refactor `tests/auth.test.js` — replace `delete require.cache[...]` with `const app = require('../../server')`
-- [ ] 4.2 Refactor `tests/users.test.js` — use test `app` instance pattern, add tests for `/api/admin/users` endpoints
-- [ ] 4.3 Refactor `tests/records.test.js` — use test `app` instance pattern, add tests for `/api/admin/records/*` endpoints
-- [ ] 4.4 Add integration test: admin edits record → verifies `ModificationLog` created with correct adminUsername
-- [ ] 4.5 Add integration test: supervisor cannot delete main admin → verifies 403 from `protectAdminAccount`
-- [ ] 4.6 Add integration test: pagination on `/api/admin/logs/access` returns correct limit + total count
-- [ ] 4.7 VERIFY: Run `npm test` — all backend tests pass with `app` singleton pattern, no `require.cache` manipulation
-- [ ] 4.8 VERIFY: Run `npm run test:e2e` — Playwright tests pass against full admin flow
+- [x] 4.1 Refactor `tests/auth.test.js` — replace `delete require.cache[...]` with `const app = require('../../server')`
+- [x] 4.2 Refactor `tests/users.test.js` — use test `app` instance pattern, add tests for `/api/admin/users` endpoints
+- [x] 4.3 Refactor `tests/records.test.js` — use test `app` instance pattern, add tests for `/api/admin/records/*` endpoints
+- [x] 4.4 Add integration test: admin edits record → verifies `ModificationLog` created with correct adminUsername
+- [x] 4.5 Add integration test: supervisor cannot delete main admin → verifies 403 from `protectAdminAccount`
+- [x] 4.6 Add integration test: pagination on `/api/admin/logs/access` returns correct limit + total count
+- [x] 4.7 VERIFY: Run `npm test` — all backend tests pass with `app` singleton pattern, no `require.cache` manipulation
+- [x] 4.8 VERIFY: Run `npm run test:e2e` — Playwright tests pass against full admin flow
