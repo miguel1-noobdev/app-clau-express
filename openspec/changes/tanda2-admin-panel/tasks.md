@@ -43,12 +43,12 @@ Branch: `feature/admin-panel-pr1-middleware-service` → base: `feature/admin-pa
 
 Branch: `feature/admin-panel-pr2-controller-routes` → base: `feature/admin-panel-pr1-middleware-service`
 
-- [ ] 2.1 RED: Write integration test for `GET /api/admin/users` returning 403 for non-admin using test `app`
-- [ ] 2.2 GREEN: Create `src/controllers/admin.controller.js` with all 12 HTTP handlers delegating to `AdminService`
-- [ ] 2.3 GREEN: Create `src/routes/admin.routes.js` mounting all `/api/admin/*` endpoints with middleware chain
-- [ ] 2.4 GREEN: Modify `server.js` — add `app.use('/api/admin', require('./src/routes/admin.routes'))` after session middleware
-- [ ] 2.5 REFACTOR: Verify mounting order (session → admin routes); confirm monolith routes remain untouched
-- [ ] 2.6 VERIFY: Run `npm test` — existing tests pass, new `/api/admin/*` endpoints respond correctly
+- [x] 2.1 RED: Write integration test for `GET /api/admin/users` returning 403 for non-admin using test `app`
+- [x] 2.2 GREEN: Create `src/controllers/admin.controller.js` with all 12 HTTP handlers delegating to `AdminService`
+- [x] 2.3 GREEN: Create `src/routes/admin.routes.js` mounting all `/api/admin/*` endpoints with middleware chain
+- [x] 2.4 GREEN: Modify `server.js` — add `app.use('/api/admin', require('./src/routes/admin.routes'))` after session middleware
+- [x] 2.5 REFACTOR: Verify mounting order (session → admin routes); confirm monolith routes remain untouched
+- [x] 2.6 VERIFY: Run `npm test` — existing tests pass, new `/api/admin/*` endpoints respond correctly
 
 ## Phase 3: Frontend Admin Panel + Routing (PR #3)
 
