@@ -1035,9 +1035,18 @@ app.put('/api/records/:id',
       return res.status(404).json({ error: 'Registro no encontrado' });
     }
 
+    // Only allow safe fields — never permit userId or _id overwrite
+    const allowedFields = ['fecha', 'horaInicio', 'horaFin', 'totalHoras', 'horasNocturnas', 'parador', 'notas'];
+    const updateData = {};
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        updateData[field] = req.body[field];
+      }
+    }
+
     const updatedRecord = await Record.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     );
 
@@ -1118,10 +1127,18 @@ app.put('/api/records/:id/admin-edit',
       notas: record.notas
     };
 
-    // Update record
+    // Only allow safe fields — never permit userId or _id overwrite
+    const allowedFields = ['fecha', 'horaInicio', 'horaFin', 'totalHoras', 'horasNocturnas', 'parador', 'notas', 'reason'];
+    const updateData = {};
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        updateData[field] = req.body[field];
+      }
+    }
+
     const updatedRecord = await Record.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     ).populate('userId', 'username');
 
