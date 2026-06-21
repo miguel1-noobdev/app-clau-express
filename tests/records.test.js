@@ -1,21 +1,11 @@
 const request = require('supertest');
-const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongoose = require('mongoose');
 const User = require('../src/models/User');
 const Record = require('../src/models/Record');
-
-let app;
-let mongoServer;
+const { ModificationLog } = require('../src/models/Logs');
+const app = require('../server');
 
 beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
-  process.env.MONGODB_URI = mongoServer.getUri();
-  process.env.SESSION_SECRET = 'test-secret-key';
-  process.env.ADMIN_PASSWORD = 'AdminPass123';
-
-  delete require.cache[require.resolve('../server')];
-  app = require('../server');
-
   await app.dbConnectPromise;
 
   await User.deleteMany({});
@@ -31,8 +21,6 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await mongoose.connection.close();
-  await mongoServer.stop();
-  delete require.cache[require.resolve('../server')];
 });
 
 describe('Records', () => {
@@ -91,5 +79,48 @@ describe('Records', () => {
 
     const recordInDb = await Record.findById(recordId);
     expect(recordInDb.userId.toString()).toBe(originalUserId);
+  });
+});
+
+describe('Admin record management', () => {
+  test('Admin edits record and creates ModificationLog', async () => {
+    const regularUser = new User({
+      username: 'regularrecord',
+      password: 'Regular123',
+      role: 'user',
+    });
+    await regularUser.save();
+
+    const record = new Record({
+      userId: regularUser._id,
+      fecha: '2024-06-01',
+      horaInicio: '08:00',
+      horaFin: '16:00',
+      totalHoras: 8,
+      parador: 'Zona Centro',
+      notas: 'Nota original',
+    });
+    await record.save();
+    const recordId = record._id.toString();
+
+    const agent = request.agent(app);
+    await agent
+      .post('/api/auth/login')
+      .send({ username: 'admin', password: 'AdminPass123' });
+
+    const res = await agent
+      .put(`/api/admin/records/${recordId}/admin-edit`)
+      .send({ parador: 'Zona Oeste', notas: 'Nota actualizada', reason: 'Test reason' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.record).toBeDefined();
+    expect(res.body.logId).toBeDefined();
+
+    const log = await ModificationLog.findById(res.body.logId);
+    expect(log).not.toBeNull();
+    expect(log.action).toBe('edit');
+    expect(log.adminUsername).toBe('admin');
+    expect(log.targetUsername).toBe('regularrecord');
   });
 });

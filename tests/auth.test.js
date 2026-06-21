@@ -1,22 +1,10 @@
 const request = require('supertest');
-const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongoose = require('mongoose');
 const User = require('../src/models/User');
-
-let app;
-let mongoServer;
+const app = require('../server');
 
 beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
-  process.env.MONGODB_URI = mongoServer.getUri();
-  process.env.SESSION_SECRET = 'test-secret-key';
-  process.env.ADMIN_PASSWORD = 'AdminPass123';
-
-  delete require.cache[require.resolve('../server')];
-  app = require('../server');
-
   await app.dbConnectPromise;
-
   await User.deleteMany({});
 
   const admin = new User({
@@ -29,8 +17,6 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await mongoose.connection.close();
-  await mongoServer.stop();
-  delete require.cache[require.resolve('../server')];
 });
 
 describe('POST /api/auth/login', () => {
